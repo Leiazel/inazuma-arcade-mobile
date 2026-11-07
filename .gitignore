@@ -1,0 +1,23 @@
+# Godot 4+ specific ignores
+.godot/
+
+# Godot 3+ specific ignores
+.import/
+
+# Build and export outputs
+build/
+*.apk
+*.aab
+
+# Android Gradle cache
+.gradle/
+android/build/.gradle/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.tmp

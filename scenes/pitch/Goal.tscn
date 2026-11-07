@@ -1,0 +1,66 @@
+[gd_scene load_steps=6 format=3 uid="uid://goal000000001"]
+
+[ext_resource type="Script" path="res://scripts/pitch/Goal.gd" id="1_goal"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_post"]
+radius = 9.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_area"]
+size = Vector2(64, 248)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_back"]
+size = Vector2(14, 260)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_side"]
+size = Vector2(80, 14)
+
+[node name="Goal" type="Node2D" groups=["goals"]]
+script = ExtResource("1_goal")
+
+[node name="GoalArea" type="Area2D" parent="."]
+position = Vector2(40, 0)
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GoalArea"]
+shape = SubResource("RectangleShape2D_area")
+
+[node name="PostTop" type="StaticBody2D" parent="."]
+position = Vector2(0, -130)
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PostTop"]
+shape = SubResource("CircleShape2D_post")
+
+[node name="PostBottom" type="StaticBody2D" parent="."]
+position = Vector2(0, 130)
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PostBottom"]
+shape = SubResource("CircleShape2D_post")
+
+[node name="NetBack" type="StaticBody2D" parent="."]
+position = Vector2(80, 0)
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NetBack"]
+shape = SubResource("RectangleShape2D_back")
+
+[node name="NetTop" type="StaticBody2D" parent="."]
+position = Vector2(40, -130)
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NetTop"]
+shape = SubResource("RectangleShape2D_side")
+
+[node name="NetBottom" type="StaticBody2D" parent="."]
+position = Vector2(40, 130)
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NetBottom"]
+shape = SubResource("RectangleShape2D_side")

@@ -1,0 +1,103 @@
+[gd_scene load_steps=8 format=3 uid="uid://match000000001"]
+
+[ext_resource type="Script" path="res://scripts/main/Match.gd" id="1_match"]
+[ext_resource type="PackedScene" uid="uid://pitch000000001" path="res://scenes/pitch/Pitch.tscn" id="2_pitch"]
+[ext_resource type="PackedScene" uid="uid://camera00000001" path="res://scenes/camera/DynamicCamera.tscn" id="3_camera"]
+[ext_resource type="PackedScene" uid="uid://ball00000001" path="res://scenes/ball/Ball.tscn" id="4_ball"]
+[ext_resource type="PackedScene" uid="uid://player00000001" path="res://scenes/player/Player.tscn" id="5_player"]
+[ext_resource type="PackedScene" uid="uid://hud0000000001" path="res://scenes/hud/HUD.tscn" id="6_hud"]
+[ext_resource type="PackedScene" uid="uid://gk00000000001" path="res://scenes/goalkeeper/Goalkeeper.tscn" id="7_gk"]
+
+[node name="Match" type="Node2D"]
+script = ExtResource("1_match")
+
+[node name="Pitch" parent="." instance=ExtResource("2_pitch")]
+
+[node name="DynamicCamera" parent="." instance=ExtResource("3_camera")]
+
+[node name="Ball" parent="." instance=ExtResource("4_ball")]
+
+[node name="Players" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="UserPlayer1" parent="Players" instance=ExtResource("5_player")]
+position = Vector2(-920, 0)
+player_id = "bra_05"
+team_id = "team_user"
+is_user_controlled = false
+is_ai = false
+target_goal_x = 1800.0
+
+[node name="UserPlayer2" parent="Players" instance=ExtResource("5_player")]
+position = Vector2(-420, -300)
+player_id = "bra_03"
+team_id = "team_user"
+is_user_controlled = true
+is_ai = false
+target_goal_x = 1800.0
+
+[node name="UserPlayer3" parent="Players" instance=ExtResource("5_player")]
+position = Vector2(-420, 300)
+player_id = "bra_01"
+team_id = "team_user"
+is_user_controlled = false
+is_ai = false
+target_goal_x = 1800.0
+
+[node name="UserPlayer4" parent="Players" instance=ExtResource("5_player")]
+position = Vector2(-150, 70)
+player_id = "bra_02"
+team_id = "team_user"
+is_user_controlled = false
+is_ai = false
+target_goal_x = 1800.0
+
+[node name="GoalkeeperLeft" parent="Players" instance=ExtResource("7_gk")]
+position = Vector2(-1710, 0)
+player_id = "gk_bra"
+team_id = "team_user"
+goal_center = Vector2(-1800, 0)
+goal_half_height = 120.0
+patrol_x = -1710.0
+
+[node name="RivalPlayer1" parent="Players" instance=ExtResource("5_player")]
+position = Vector2(920, 0)
+player_id = "star_04"
+team_id = "team_opp"
+is_user_controlled = false
+is_ai = true
+target_goal_x = -1800.0
+
+[node name="RivalPlayer2" parent="Players" instance=ExtResource("5_player")]
+position = Vector2(420, -300)
+player_id = "star_03"
+team_id = "team_opp"
+is_user_controlled = false
+is_ai = true
+target_goal_x = -1800.0
+
+[node name="RivalPlayer3" parent="Players" instance=ExtResource("5_player")]
+position = Vector2(420, 300)
+player_id = "star_02"
+team_id = "team_opp"
+is_user_controlled = false
+is_ai = true
+target_goal_x = -1800.0
+
+[node name="RivalPlayer4" parent="Players" instance=ExtResource("5_player")]
+position = Vector2(170, -70)
+player_id = "star_01"
+team_id = "team_opp"
+is_user_controlled = false
+is_ai = true
+target_goal_x = -1800.0
+
+[node name="GoalkeeperRight" parent="Players" instance=ExtResource("7_gk")]
+position = Vector2(1710, 0)
+player_id = "gk_star"
+team_id = "team_opp"
+goal_center = Vector2(1800, 0)
+goal_half_height = 120.0
+patrol_x = 1710.0
+
+[node name="HUD" parent="." instance=ExtResource("6_hud")]

@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3 uid="uid://gk00000000001"]
+
+[ext_resource type="Script" path="res://scripts/goalkeeper/Goalkeeper.gd" id="1_gk"]
+[ext_resource type="Script" path="res://scripts/kits/BaseIndicator2D.gd" id="2_indicator"]
+[ext_resource type="Texture2D" path="res://assets/sprites/shadow.png" id="3_shadow"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_init"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"idle_down",
+"speed": 6.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_feet"]
+radius = 12.0
+
+[node name="Goalkeeper" type="CharacterBody2D" groups=["players", "goalkeepers"]]
+collision_layer = 1
+collision_mask = 4
+motion_mode = 1
+safe_margin = 0.05
+script = ExtResource("1_gk")
+
+[node name="BaseIndicator2D" type="Node2D" parent="."]
+script = ExtResource("2_indicator")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+position = Vector2(0, -2)
+scale = Vector2(0.78, 0.78)
+texture = ExtResource("3_shadow")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -42)
+scale = Vector2(0.78, 0.78)
+sprite_frames = SubResource("SpriteFrames_init")
+animation = &"idle_down"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_feet")
+

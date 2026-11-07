@@ -1,0 +1,840 @@
+{
+  "players": {
+    "arg_01": {
+      "id": "arg_01",
+      "name": "El Diez",
+      "team": "team_argentina",
+      "role": "FW",
+      "stats": {
+        "velocidad": 88,
+        "control": 95,
+        "pase": 94,
+        "tiro": 92,
+        "defensa": 42
+      },
+      "ability": {
+        "name": "Gambeta Sideral",
+        "type": "dribble",
+        "cooldown": 8.0,
+        "description": "Aceleración eléctrica con balón pegado al pie, inmune a robos y dejando atrás a los rivales."
+      },
+      "anims": "res://data/anims/arg_01.json",
+      "sheet": "res://assets/sprites/arg_01_aligned.png",
+      "portrait": "res://assets/sprites/arg_01_portrait.png",
+      "icon": "res://assets/sprites/arg_01_icon.png"
+    },
+    "arg_02": {
+      "id": "arg_02",
+      "name": "El Cósmico",
+      "team": "team_argentina",
+      "role": "MF",
+      "stats": {
+        "velocidad": 86,
+        "control": 96,
+        "pase": 93,
+        "tiro": 90,
+        "defensa": 45
+      },
+      "ability": {
+        "name": "Barrilete Cósmico",
+        "type": "dribble",
+        "cooldown": 8.5,
+        "description": "Arranque imparable que desestabiliza a los defensores cercanos y potencia la conducción."
+      },
+      "anims": "res://data/anims/arg_02.json",
+      "sheet": "res://assets/sprites/arg_02_aligned.png",
+      "portrait": "res://assets/sprites/arg_02_portrait.png",
+      "icon": "res://assets/sprites/arg_02_icon.png"
+    },
+    "arg_03": {
+      "id": "arg_03",
+      "name": "El Cañonero",
+      "team": "team_argentina",
+      "role": "FW",
+      "stats": {
+        "velocidad": 83,
+        "control": 82,
+        "pase": 75,
+        "tiro": 95,
+        "defensa": 50
+      },
+      "ability": {
+        "name": "Bombazo de Gabriel",
+        "type": "shot",
+        "cooldown": 9.0,
+        "description": "Remate violento de empeine lleno que viaja como un proyectil dorado hacia la red."
+      },
+      "anims": "res://data/anims/arg_03.json",
+      "sheet": "res://assets/sprites/arg_03_aligned.png",
+      "portrait": "res://assets/sprites/arg_03_portrait.png",
+      "icon": "res://assets/sprites/arg_03_icon.png"
+    },
+    "arg_04": {
+      "id": "arg_04",
+      "name": "El Motor",
+      "team": "team_argentina",
+      "role": "DF",
+      "stats": {
+        "velocidad": 84,
+        "control": 80,
+        "pase": 84,
+        "tiro": 74,
+        "defensa": 88
+      },
+      "ability": {
+        "name": "Turbina Albiceleste",
+        "type": "defense",
+        "cooldown": 7.5,
+        "description": "Cierre de presión incansable que recupera el balón al instante y desplaza al rival."
+      },
+      "anims": "res://data/anims/arg_04.json",
+      "sheet": "res://assets/sprites/arg_04_aligned.png",
+      "portrait": "res://assets/sprites/arg_04_portrait.png",
+      "icon": "res://assets/sprites/arg_04_icon.png"
+    },
+    "arg_05": {
+      "id": "arg_05",
+      "name": "El Ángel",
+      "team": "team_argentina",
+      "role": "MF",
+      "stats": {
+        "velocidad": 92,
+        "control": 91,
+        "pase": 90,
+        "tiro": 86,
+        "defensa": 54
+      },
+      "ability": {
+        "name": "Vaselina de Oro",
+        "type": "pass",
+        "cooldown": 8.0,
+        "description": "Envío quirúrgico de larga distancia y desborde veloz para habilitar el gol."
+      },
+      "anims": "res://data/anims/arg_05.json",
+      "sheet": "res://assets/sprites/arg_05_aligned.png",
+      "portrait": "res://assets/sprites/arg_05_portrait.png",
+      "icon": "res://assets/sprites/arg_05_icon.png"
+    },
+    "bra_01": {
+      "id": "bra_01",
+      "name": "El Mago",
+      "team": "team_brasil",
+      "role": "MF",
+      "stats": {
+        "velocidad": 87,
+        "control": 95,
+        "pase": 91,
+        "tiro": 88,
+        "defensa": 45
+      },
+      "ability": {
+        "name": "Elástica del Hechicero",
+        "type": "dribble",
+        "cooldown": 8.0,
+        "description": "Finta hipnótica de carnaval que deja atrás a los marcadores y acelera el paso."
+      },
+      "anims": "res://data/anims/bra_01.json",
+      "sheet": "res://assets/sprites/bra_01_aligned.png",
+      "portrait": "res://assets/sprites/bra_01_portrait.png",
+      "icon": "res://assets/sprites/bra_01_icon.png"
+    },
+    "bra_02": {
+      "id": "bra_02",
+      "name": "El Fenómeno",
+      "team": "team_brasil",
+      "role": "FW",
+      "stats": {
+        "velocidad": 94,
+        "control": 92,
+        "pase": 78,
+        "tiro": 94,
+        "defensa": 38
+      },
+      "ability": {
+        "name": "Arrancada Fenomenal",
+        "type": "shot",
+        "cooldown": 8.5,
+        "description": "Explosión de potencia y remate cruzado rasante casi imposible de interceptar."
+      },
+      "anims": "res://data/anims/bra_02.json",
+      "sheet": "res://assets/sprites/bra_02_aligned.png",
+      "portrait": "res://assets/sprites/bra_02_portrait.png",
+      "icon": "res://assets/sprites/bra_02_icon.png"
+    },
+    "bra_03": {
+      "id": "bra_03",
+      "name": "El Rayo",
+      "team": "team_brasil",
+      "role": "MF",
+      "stats": {
+        "velocidad": 90,
+        "control": 88,
+        "pase": 85,
+        "tiro": 80,
+        "defensa": 82
+      },
+      "ability": {
+        "name": "Samba Eléctrica",
+        "type": "dribble",
+        "cooldown": 7.5,
+        "description": "Bicicleta veloz con cambio de ritmo fulminante e inmunidad temporal al robo."
+      },
+      "anims": "res://data/anims/bra_03.json",
+      "sheet": "res://assets/sprites/bra_03_aligned.png",
+      "portrait": "res://assets/sprites/bra_03_portrait.png",
+      "icon": "res://assets/sprites/bra_03_icon.png"
+    },
+    "bra_04": {
+      "id": "bra_04",
+      "name": "La Flecha Tropical",
+      "team": "team_desafiantes",
+      "role": "FW",
+      "stats": {
+        "velocidad": 91,
+        "control": 85,
+        "pase": 78,
+        "tiro": 84,
+        "defensa": 42
+      },
+      "ability": {
+        "name": "Destello Carioca",
+        "type": "dribble",
+        "cooldown": 7.5,
+        "description": "Sprint supersónico por la banda que supera cualquier cierre defensivo."
+      },
+      "anims": "res://data/anims/bra_04.json",
+      "sheet": "res://assets/sprites/bra_04_aligned.png",
+      "portrait": "res://assets/sprites/bra_04_portrait.png",
+      "icon": "res://assets/sprites/bra_04_icon.png"
+    },
+    "bra_05": {
+      "id": "bra_05",
+      "name": "El Cañón Zurdo",
+      "team": "team_brasil",
+      "role": "DF",
+      "stats": {
+        "velocidad": 92,
+        "control": 84,
+        "pase": 86,
+        "tiro": 93,
+        "defensa": 86
+      },
+      "ability": {
+        "name": "La Banana Atómica",
+        "type": "shot",
+        "cooldown": 9.0,
+        "description": "Cañonazo supersónico de tres dedos con efecto imposible que cruza todo el campo."
+      },
+      "anims": "res://data/anims/bra_05.json",
+      "sheet": "res://assets/sprites/bra_05_aligned.png",
+      "portrait": "res://assets/sprites/bra_05_portrait.png",
+      "icon": "res://assets/sprites/bra_05_icon.png"
+    },
+    "ita_01": {
+      "id": "ita_01",
+      "name": "El Maestro",
+      "team": "team_italia",
+      "role": "MF",
+      "stats": {
+        "velocidad": 76,
+        "control": 93,
+        "pase": 96,
+        "tiro": 85,
+        "defensa": 70
+      },
+      "ability": {
+        "name": "La Maledetta Imperial",
+        "type": "pass",
+        "cooldown": 8.0,
+        "description": "Pase teledirigido de geometría perfecta que rompe líneas o sorprende al arquero."
+      },
+      "anims": "res://data/anims/ita_01.json",
+      "sheet": "res://assets/sprites/ita_01_aligned.png",
+      "portrait": "res://assets/sprites/ita_01_portrait.png",
+      "icon": "res://assets/sprites/ita_01_icon.png"
+    },
+    "ita_02": {
+      "id": "ita_02",
+      "name": "El Muro",
+      "team": "team_italia",
+      "role": "DF",
+      "stats": {
+        "velocidad": 82,
+        "control": 76,
+        "pase": 78,
+        "tiro": 58,
+        "defensa": 95
+      },
+      "ability": {
+        "name": "Catenaccio Supremo",
+        "type": "defense",
+        "cooldown": 8.0,
+        "description": "Cierre defensivo perfecto que desarma al rival en seco y asegura la posesión."
+      },
+      "anims": "res://data/anims/ita_02.json",
+      "sheet": "res://assets/sprites/ita_02_aligned.png",
+      "portrait": "res://assets/sprites/ita_02_portrait.png",
+      "icon": "res://assets/sprites/ita_02_icon.png"
+    },
+    "ita_03": {
+      "id": "ita_03",
+      "name": "La Coleta Mágica",
+      "team": "team_italia",
+      "role": "FW",
+      "stats": {
+        "velocidad": 85,
+        "control": 92,
+        "pase": 89,
+        "tiro": 90,
+        "defensa": 42
+      },
+      "ability": {
+        "name": "Fantasía Divina",
+        "type": "shot",
+        "cooldown": 8.5,
+        "description": "Definición mágica colocada al ángulo con precisión milimétrica y máxima velocidad."
+      },
+      "anims": "res://data/anims/ita_03.json",
+      "sheet": "res://assets/sprites/ita_03_aligned.png",
+      "portrait": "res://assets/sprites/ita_03_portrait.png",
+      "icon": "res://assets/sprites/ita_03_icon.png"
+    },
+    "ita_04": {
+      "id": "ita_04",
+      "name": "El Capitán Eterno",
+      "team": "team_italia",
+      "role": "DF",
+      "stats": {
+        "velocidad": 85,
+        "control": 84,
+        "pase": 86,
+        "tiro": 68,
+        "defensa": 96
+      },
+      "ability": {
+        "name": "Corte Imperial",
+        "type": "defense",
+        "cooldown": 7.5,
+        "description": "Anticipación elegante e implacable que arrebata el esférico sin dar opción al atacante."
+      },
+      "anims": "res://data/anims/ita_04.json",
+      "sheet": "res://assets/sprites/ita_04_aligned.png",
+      "portrait": "res://assets/sprites/ita_04_portrait.png",
+      "icon": "res://assets/sprites/ita_04_icon.png"
+    },
+    "star_01": {
+      "id": "star_01",
+      "name": "El Cíborg",
+      "team": "team_estrellas",
+      "role": "FW",
+      "stats": {
+        "velocidad": 91,
+        "control": 82,
+        "pase": 74,
+        "tiro": 95,
+        "defensa": 48
+      },
+      "ability": {
+        "name": "Impacto Balístico Valkiria",
+        "type": "shot",
+        "cooldown": 9.0,
+        "description": "Volea cibernética devastadora que transforma el balón en un bólido incandescente."
+      },
+      "anims": "res://data/anims/star_01.json",
+      "sheet": "res://assets/sprites/star_01_aligned.png",
+      "portrait": "res://assets/sprites/star_01_portrait.png",
+      "icon": "res://assets/sprites/star_01_icon.png"
+    },
+    "star_02": {
+      "id": "star_02",
+      "name": "El Relámpago",
+      "team": "team_estrellas",
+      "role": "FW",
+      "stats": {
+        "velocidad": 96,
+        "control": 86,
+        "pase": 81,
+        "tiro": 90,
+        "defensa": 40
+      },
+      "ability": {
+        "name": "Propulsión Sónica",
+        "type": "dribble",
+        "cooldown": 7.5,
+        "description": "Turbocarrera explosiva que rompe la barrera defensiva en una fracción de segundo."
+      },
+      "anims": "res://data/anims/star_02.json",
+      "sheet": "res://assets/sprites/star_02_aligned.png",
+      "portrait": "res://assets/sprites/star_02_portrait.png",
+      "icon": "res://assets/sprites/star_02_icon.png"
+    },
+    "star_03": {
+      "id": "star_03",
+      "name": "El Comandante",
+      "team": "team_estrellas",
+      "role": "MF",
+      "stats": {
+        "velocidad": 90,
+        "control": 88,
+        "pase": 84,
+        "tiro": 94,
+        "defensa": 52
+      },
+      "ability": {
+        "name": "Misil Sidéreo",
+        "type": "shot",
+        "cooldown": 8.5,
+        "description": "Disparo seco con caída violenta que viaja a velocidad vertiginosa hacia el arco."
+      },
+      "anims": "res://data/anims/star_03.json",
+      "sheet": "res://assets/sprites/star_03_aligned.png",
+      "portrait": "res://assets/sprites/star_03_portrait.png",
+      "icon": "res://assets/sprites/star_03_icon.png"
+    },
+    "star_04": {
+      "id": "star_04",
+      "name": "El Coloso",
+      "team": "team_estrellas",
+      "role": "DF",
+      "stats": {
+        "velocidad": 82,
+        "control": 86,
+        "pase": 83,
+        "tiro": 88,
+        "defensa": 85
+      },
+      "ability": {
+        "name": "Chilena Colosal",
+        "type": "shot",
+        "cooldown": 9.0,
+        "description": "Remate acrobático de potencia descomunal capaz de sorprender desde cualquier sector."
+      },
+      "anims": "res://data/anims/star_04.json",
+      "sheet": "res://assets/sprites/star_04_aligned.png",
+      "portrait": "res://assets/sprites/star_04_portrait.png",
+      "icon": "res://assets/sprites/star_04_icon.png"
+    },
+    "star_05": {
+      "id": "star_05",
+      "name": "El Arquitecto",
+      "team": "team_estrellas",
+      "role": "MF",
+      "stats": {
+        "velocidad": 84,
+        "control": 92,
+        "pase": 96,
+        "tiro": 89,
+        "defensa": 68
+      },
+      "ability": {
+        "name": "Láser Teledirigido",
+        "type": "pass",
+        "cooldown": 8.0,
+        "description": "Asistencia milimétrica a máxima velocidad que deja al delantero de cara al gol."
+      },
+      "anims": "res://data/anims/star_05.json",
+      "sheet": "res://assets/sprites/star_05_aligned.png",
+      "portrait": "res://assets/sprites/star_05_portrait.png",
+      "icon": "res://assets/sprites/star_05_icon.png"
+    },
+    "vet_01": {
+      "id": "vet_01",
+      "name": "El Guante Dorado",
+      "team": "team_veteranos",
+      "role": "MF",
+      "stats": {
+        "velocidad": 80,
+        "control": 87,
+        "pase": 94,
+        "tiro": 86,
+        "defensa": 68
+      },
+      "ability": {
+        "name": "Curvatura Gravitacional",
+        "type": "pass",
+        "cooldown": 8.0,
+        "description": "Envío con rosca dorada perfecta que asiste al compañero o busca el ángulo lejano."
+      },
+      "anims": "res://data/anims/vet_01.json",
+      "sheet": "res://assets/sprites/vet_01_aligned.png",
+      "portrait": "res://assets/sprites/vet_01_portrait.png",
+      "icon": "res://assets/sprites/vet_01_icon.png"
+    },
+    "vet_02": {
+      "id": "vet_02",
+      "name": "La Furia Rubia",
+      "team": "team_veteranos",
+      "role": "FW",
+      "stats": {
+        "velocidad": 86,
+        "control": 85,
+        "pase": 85,
+        "tiro": 89,
+        "defensa": 64
+      },
+      "ability": {
+        "name": "Cañón de Praga",
+        "type": "shot",
+        "cooldown": 8.5,
+        "description": "Remate furioso de media distancia que viaja como un trueno rasante."
+      },
+      "anims": "res://data/anims/vet_02.json",
+      "sheet": "res://assets/sprites/vet_02_aligned.png",
+      "portrait": "res://assets/sprites/vet_02_portrait.png",
+      "icon": "res://assets/sprites/vet_02_icon.png"
+    },
+    "vet_03": {
+      "id": "vet_03",
+      "name": "El Pitbull",
+      "team": "team_veteranos",
+      "role": "DF",
+      "stats": {
+        "velocidad": 85,
+        "control": 81,
+        "pase": 80,
+        "tiro": 75,
+        "defensa": 91
+      },
+      "ability": {
+        "name": "Mordisco del Pitbull",
+        "type": "defense",
+        "cooldown": 7.5,
+        "description": "Presión feroz de asfalto que despoja del balón al rival de forma instantánea."
+      },
+      "anims": "res://data/anims/vet_03.json",
+      "sheet": "res://assets/sprites/vet_03_aligned.png",
+      "portrait": "res://assets/sprites/vet_03_portrait.png",
+      "icon": "res://assets/sprites/vet_03_icon.png"
+    },
+    "vet_04": {
+      "id": "vet_04",
+      "name": "El Mago Galo",
+      "team": "team_veteranos",
+      "role": "MF",
+      "stats": {
+        "velocidad": 82,
+        "control": 95,
+        "pase": 94,
+        "tiro": 88,
+        "defensa": 66
+      },
+      "ability": {
+        "name": "Ruleta Galáctica",
+        "type": "dribble",
+        "cooldown": 8.0,
+        "description": "Giro elegante de 360 grados que elude toda marca y acelera con control total."
+      },
+      "anims": "res://data/anims/vet_04.json",
+      "sheet": "res://assets/sprites/vet_04_aligned.png",
+      "portrait": "res://assets/sprites/vet_04_portrait.png",
+      "icon": "res://assets/sprites/vet_04_icon.png"
+    },
+    "leg_01": {
+      "id": "leg_01",
+      "name": "La Melena Dorada",
+      "team": "team_desafiantes",
+      "role": "MF",
+      "stats": {
+        "velocidad": 75,
+        "control": 92,
+        "pase": 92,
+        "tiro": 74,
+        "defensa": 52
+      },
+      "ability": {
+        "name": "Pase del Pibe Dorado",
+        "type": "pass",
+        "cooldown": 8.0,
+        "description": "Toque mágico filtrado entre líneas que habilita al atacante al instante."
+      },
+      "anims": "res://data/anims/leg_01.json",
+      "sheet": "res://assets/sprites/leg_01_aligned.png",
+      "portrait": "res://assets/sprites/leg_01_portrait.png",
+      "icon": "res://assets/sprites/leg_01_icon.png"
+    },
+    "leg_02": {
+      "id": "leg_02",
+      "name": "El Gladiador",
+      "team": "team_desafiantes",
+      "role": "DF",
+      "stats": {
+        "velocidad": 82,
+        "control": 75,
+        "pase": 76,
+        "tiro": 70,
+        "defensa": 92
+      },
+      "ability": {
+        "name": "Embiste Gladiador",
+        "type": "defense",
+        "cooldown": 8.0,
+        "description": "Entrada imperial de jerarquía que recupera la pelota y derriba al oponente."
+      },
+      "anims": "res://data/anims/leg_02.json",
+      "sheet": "res://assets/sprites/leg_02_aligned.png",
+      "portrait": "res://assets/sprites/leg_02_portrait.png",
+      "icon": "res://assets/sprites/leg_02_icon.png"
+    },
+    "leg_03": {
+      "id": "leg_03",
+      "name": "El León Indomable",
+      "team": "team_desafiantes",
+      "role": "DF",
+      "stats": {
+        "velocidad": 83,
+        "control": 78,
+        "pase": 80,
+        "tiro": 72,
+        "defensa": 93
+      },
+      "ability": {
+        "name": "Escudo Indomable",
+        "type": "defense",
+        "cooldown": 7.5,
+        "description": "Muralla humana inquebrantable que corta el avance rival con fuerza tectónica."
+      },
+      "anims": "res://data/anims/leg_03.json",
+      "sheet": "res://assets/sprites/leg_03_aligned.png",
+      "portrait": "res://assets/sprites/leg_03_portrait.png",
+      "icon": "res://assets/sprites/leg_03_icon.png"
+    },
+    "gk_arg": {
+      "id": "gk_arg",
+      "name": "El Guardián Austral",
+      "team": "team_argentina",
+      "role": "GK",
+      "stats": {
+        "reflejos": 94,
+        "velocidad": 80,
+        "control": 78,
+        "pase": 82,
+        "tiro": 45,
+        "defensa": 95
+      },
+      "ability": {
+        "name": "Atajada Psicológica",
+        "type": "gk_save",
+        "cooldown": 10.0,
+        "description": "Reflejo felino extremo que amplía el alcance de atajada ante remates a quemarropa."
+      },
+      "anims": "res://data/anims/gk_arg.json",
+      "sheet": "res://assets/sprites/gk_arg_aligned.png",
+      "portrait": "res://assets/sprites/gk_arg_portrait.png",
+      "icon": "res://assets/sprites/gk_arg_icon.png"
+    },
+    "gk_bra": {
+      "id": "gk_bra",
+      "name": "La Muralla Carioca",
+      "team": "team_brasil",
+      "role": "GK",
+      "stats": {
+        "reflejos": 91,
+        "velocidad": 79,
+        "control": 80,
+        "pase": 84,
+        "tiro": 42,
+        "defensa": 92
+      },
+      "ability": {
+        "name": "Muralla Verdeamarela",
+        "type": "gk_save",
+        "cooldown": 10.0,
+        "description": "Despliegue atlético total para cubrir ambos postes con seguridad absoluta."
+      },
+      "anims": "res://data/anims/gk_bra.json",
+      "sheet": "res://assets/sprites/gk_bra_aligned.png",
+      "portrait": "res://assets/sprites/gk_bra_portrait.png",
+      "icon": "res://assets/sprites/gk_bra_icon.png"
+    },
+    "gk_ita": {
+      "id": "gk_ita",
+      "name": "Il Supremo",
+      "team": "team_italia",
+      "role": "GK",
+      "stats": {
+        "reflejos": 93,
+        "velocidad": 76,
+        "control": 77,
+        "pase": 78,
+        "tiro": 40,
+        "defensa": 94
+      },
+      "ability": {
+        "name": "Bastión del Coliseo",
+        "type": "gk_save",
+        "cooldown": 10.0,
+        "description": "Vuelo monumental que bloquea disparos potentes y despeja el peligro."
+      },
+      "anims": "res://data/anims/gk_ita.json",
+      "sheet": "res://assets/sprites/gk_ita_aligned.png",
+      "portrait": "res://assets/sprites/gk_ita_portrait.png",
+      "icon": "res://assets/sprites/gk_ita_icon.png"
+    },
+    "gk_star": {
+      "id": "gk_star",
+      "name": "El Muro Europeo",
+      "team": "team_estrellas",
+      "role": "GK",
+      "stats": {
+        "reflejos": 88,
+        "velocidad": 78,
+        "control": 76,
+        "pase": 79,
+        "tiro": 42,
+        "defensa": 89
+      },
+      "ability": {
+        "name": "Envergadura Real",
+        "type": "gk_save",
+        "cooldown": 10.0,
+        "description": "Estirada felina de gran alcance que neutraliza remates esquinados."
+      },
+      "anims": "res://data/anims/gk_star.json",
+      "sheet": "res://assets/sprites/gk_star_aligned.png",
+      "portrait": "res://assets/sprites/gk_star_portrait.png",
+      "icon": "res://assets/sprites/gk_star_icon.png"
+    },
+    "gk_vet": {
+      "id": "gk_vet",
+      "name": "El Titán Bávaro",
+      "team": "team_veteranos",
+      "role": "GK",
+      "stats": {
+        "reflejos": 86,
+        "velocidad": 74,
+        "control": 72,
+        "pase": 74,
+        "tiro": 40,
+        "defensa": 90
+      },
+      "ability": {
+        "name": "Rugido del Titán",
+        "type": "gk_save",
+        "cooldown": 10.0,
+        "description": "Presencia intimidante y manotazo salvador ante disparos de máxima potencia."
+      },
+      "anims": "res://data/anims/gk_vet.json",
+      "sheet": "res://assets/sprites/gk_vet_aligned.png",
+      "portrait": "res://assets/sprites/gk_vet_portrait.png",
+      "icon": "res://assets/sprites/gk_vet_icon.png"
+    },
+    "gk_leg": {
+      "id": "gk_leg",
+      "name": "El Escorpión",
+      "team": "team_desafiantes",
+      "role": "GK",
+      "stats": {
+        "reflejos": 82,
+        "velocidad": 84,
+        "control": 82,
+        "pase": 80,
+        "tiro": 55,
+        "defensa": 84
+      },
+      "ability": {
+        "name": "Rechazo del Escorpión",
+        "type": "gk_save",
+        "cooldown": 10.0,
+        "description": "Acrobacia legendaria en el aire para despejar el balón y lanzar el contragolpe."
+      },
+      "anims": "res://data/anims/gk_leg.json",
+      "sheet": "res://assets/sprites/gk_leg_aligned.png",
+      "portrait": "res://assets/sprites/gk_leg_portrait.png",
+      "icon": "res://assets/sprites/gk_leg_icon.png"
+    },
+    "home_01": {
+      "id": "home_01",
+      "name": "Axel Blaze",
+      "team": "team_home",
+      "role": "FW",
+      "stats": {
+        "velocidad": 88,
+        "control": 85,
+        "pase": 82,
+        "tiro": 94,
+        "defensa": 50
+      },
+      "ability": {
+        "name": "Tornado de Fuego",
+        "type": "shot",
+        "cooldown": 7.0,
+        "description": "Disparo ígneo legendario envuelto en un torbellino de llamas."
+      },
+      "anims": "res://data/anims/bra_01.json",
+      "sheet": "res://assets/sprites/bra_01_aligned.png",
+      "portrait": "res://assets/sprites/bra_01_portrait.png",
+      "icon": "res://assets/sprites/bra_01_icon.png"
+    },
+    "home_gk": {
+      "id": "home_gk",
+      "name": "Mark Evans",
+      "team": "team_home",
+      "role": "GK",
+      "stats": {
+        "reflejos": 95,
+        "velocidad": 75,
+        "control": 80,
+        "pase": 80,
+        "tiro": 60,
+        "defensa": 96
+      },
+      "ability": {
+        "name": "Mano Celestial",
+        "type": "gk_save",
+        "cooldown": 9.0,
+        "description": "Una gigantesca mano de energía dorada detiene cualquier balón."
+      },
+      "anims": "res://data/anims/gk_bra.json",
+      "sheet": "res://assets/sprites/gk_bra_aligned.png",
+      "portrait": "res://assets/sprites/gk_bra_portrait.png",
+      "icon": "res://assets/sprites/gk_bra_icon.png"
+    },
+    "away_01": {
+      "id": "away_01",
+      "name": "Jude Sharp",
+      "team": "team_away",
+      "role": "MF",
+      "stats": {
+        "velocidad": 84,
+        "control": 92,
+        "pase": 95,
+        "tiro": 84,
+        "defensa": 78
+      },
+      "ability": {
+        "name": "Balón Ilusión",
+        "type": "dribble",
+        "cooldown": 7.5,
+        "description": "Múltiples copias espectrales del balón confunden por completo al rival."
+      },
+      "anims": "res://data/anims/star_01.json",
+      "sheet": "res://assets/sprites/star_01_aligned.png",
+      "portrait": "res://assets/sprites/star_01_portrait.png",
+      "icon": "res://assets/sprites/star_01_icon.png"
+    },
+    "away_gk": {
+      "id": "away_gk",
+      "name": "Joe King",
+      "team": "team_away",
+      "role": "GK",
+      "stats": {
+        "reflejos": 92,
+        "velocidad": 78,
+        "control": 75,
+        "pase": 75,
+        "tiro": 45,
+        "defensa": 93
+      },
+      "ability": {
+        "name": "Colmillo de Pantera",
+        "type": "gk_save",
+        "cooldown": 9.0,
+        "description": "Atrapa el disparo con garras feroces y reflejos felinos."
+      },
+      "anims": "res://data/anims/gk_star.json",
+      "sheet": "res://assets/sprites/gk_star_aligned.png",
+      "portrait": "res://assets/sprites/gk_star_portrait.png",
+      "icon": "res://assets/sprites/gk_star_icon.png"
+    }
+  }
+}

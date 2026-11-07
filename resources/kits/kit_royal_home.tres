@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="KitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/kits/KitData.gd" id="1_kitdata"]
+
+[resource]
+script = ExtResource("1_kitdata")
+team_name = "Royal Academy"
+is_away = false
+primary_color = Color(0.129412, 0.588235, 0.32549, 1)
+secondary_color = Color(0.921569, 0.341176, 0.341176, 1)
+trim_color = Color(0.96, 0.96, 0.96, 1)
+number_color = Color(1, 1, 1, 1)
+indicator_color = Color(0.95, 0.25, 0.25, 0.95)
+base_primary_key = Color(0.94902, 0.788235, 0.298039, 1)
+base_secondary_key = Color(0.184314, 0.501961, 0.929412, 1)
+base_trim_key = Color(1, 1, 1, 1)

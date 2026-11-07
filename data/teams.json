@@ -1,0 +1,70 @@
+{
+  "teams": {
+    "team_desafiantes": {
+      "id": "team_desafiantes",
+      "name": "Los Desafiantes",
+      "level": 1,
+      "color": "#FF6B1A",
+      "secondary_color": "#1E293B",
+      "alt_color": "#FDE047",
+      "formation": ["leg_02", "leg_03", "leg_01", "bra_04"],
+      "gk_id": "gk_leg",
+      "description": "Talentos rebeldes y acrobáticos con doble muralla en el fondo, pase creativo y velocidad explosiva arriba."
+    },
+    "team_veteranos": {
+      "id": "team_veteranos",
+      "name": "Clásicos Legendarios",
+      "level": 2,
+      "color": "#A855F7",
+      "secondary_color": "#FACC15",
+      "alt_color": "#F43F5E",
+      "formation": ["vet_03", "vet_01", "vet_04", "vet_02"],
+      "gk_id": "gk_vet",
+      "description": "Veteranos de mil batallas con marca implacable, magia galáctica en el medio y pegada letal."
+    },
+    "team_estrellas": {
+      "id": "team_estrellas",
+      "name": "Estrellas Mundiales",
+      "level": 3,
+      "color": "#EF4444",
+      "secondary_color": "#FFFFFF",
+      "alt_color": "#F97316",
+      "formation": ["star_04", "star_03", "star_02", "star_01"],
+      "gk_id": "gk_star",
+      "description": "Potencia física arrolladora, despliegue supersónico y definición cibernética frente al arco."
+    },
+    "team_italia": {
+      "id": "team_italia",
+      "name": "Selección Azzurra",
+      "level": 4,
+      "color": "#2563EB",
+      "secondary_color": "#FFFFFF",
+      "alt_color": "#F8FAFC",
+      "formation": ["ita_02", "ita_04", "ita_01", "ita_03"],
+      "gk_id": "gk_ita",
+      "description": "Catenaccio legendario con doble bastión atrás, maestría táctica en el centro y fantasía pura en ataque."
+    },
+    "team_brasil": {
+      "id": "team_brasil",
+      "name": "Selección Verdeamarela",
+      "level": 5,
+      "color": "#FACC15",
+      "secondary_color": "#16A34A",
+      "alt_color": "#22C55E",
+      "formation": ["bra_05", "bra_03", "bra_01", "bra_02"],
+      "gk_id": "gk_bra",
+      "description": "Fútbol arte, cañón supersónico en defensa, magia en el regate y máxima creatividad ofensiva."
+    },
+    "team_argentina": {
+      "id": "team_argentina",
+      "name": "Selección Celeste de Leyendas",
+      "level": 6,
+      "color": "#38BDF8",
+      "secondary_color": "#FFFFFF",
+      "alt_color": "#E11D48",
+      "formation": ["arg_04", "arg_02", "arg_01", "arg_03"],
+      "gk_id": "gk_arg",
+      "description": "El Jefe Final 5v5: garra incansable, gambeta cósmica, mística campeona y poder de fuego letal."
+    }
+  }
+}

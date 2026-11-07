@@ -1,0 +1,120 @@
+[gd_scene load_steps=5 format=3 uid="uid://hud0000000001"]
+
+[ext_resource type="Script" path="res://scripts/hud/HUD.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/hud/SkillBanner.gd" id="2_banner"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scoreboard"]
+bg_color = Color(0.08, 0.11, 0.16, 0.75)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.98, 0.82, 0.12, 0.45)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_time"]
+content_margin_left = 6.0
+content_margin_top = 1.0
+content_margin_right = 6.0
+content_margin_bottom = 1.0
+bg_color = Color(0.04, 0.05, 0.08, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_left = 6
+corner_radius_bottom_right = 6
+
+[node name="HUD" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="TopCenterScoreboard" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(360, 52)
+offset_left = 460.0
+offset_top = 14.0
+offset_right = 820.0
+offset_bottom = 66.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_scoreboard")
+
+[node name="Margin" type="MarginContainer" parent="TopCenterScoreboard"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 2
+
+[node name="HBox" type="HBoxContainer" parent="TopCenterScoreboard/Margin"]
+layout_mode = 2
+alignment = 1
+
+[node name="HomeName" type="Label" parent="TopCenterScoreboard/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_font_sizes/font_size = 12
+text = "RAIMON"
+horizontal_alignment = 2
+
+[node name="Spacer1" type="Control" parent="TopCenterScoreboard/Margin/HBox"]
+custom_minimum_size = Vector2(6, 0)
+layout_mode = 2
+
+[node name="HomeScore" type="Label" parent="TopCenterScoreboard/Margin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "0"
+horizontal_alignment = 1
+
+[node name="SpacerMid1" type="Control" parent="TopCenterScoreboard/Margin/HBox"]
+custom_minimum_size = Vector2(8, 0)
+layout_mode = 2
+
+[node name="TimeContainer" type="PanelContainer" parent="TopCenterScoreboard/Margin/HBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_time")
+
+[node name="TimeMargin" type="MarginContainer" parent="TopCenterScoreboard/Margin/HBox/TimeContainer"]
+layout_mode = 2
+
+[node name="TimeLabel" type="Label" parent="TopCenterScoreboard/Margin/HBox/TimeContainer/TimeMargin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.98, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "00:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpacerMid2" type="Control" parent="TopCenterScoreboard/Margin/HBox"]
+custom_minimum_size = Vector2(8, 0)
+layout_mode = 2
+
+[node name="AwayScore" type="Label" parent="TopCenterScoreboard/Margin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "0"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="TopCenterScoreboard/Margin/HBox"]
+custom_minimum_size = Vector2(6, 0)
+layout_mode = 2
+
+[node name="AwayName" type="Label" parent="TopCenterScoreboard/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_font_sizes/font_size = 12
+text = "ROYAL"
+
+[node name="SkillBanner" type="Control" parent="."]
+custom_minimum_size = Vector2(340, 52)
+layout_mode = 3
+anchors_preset = 0
+offset_left = 1320.0
+offset_top = 14.0
+offset_right = 1660.0
+offset_bottom = 66.0
+script = ExtResource("2_banner")
