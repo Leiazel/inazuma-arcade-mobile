@@ -1,0 +1,84 @@
+name: Build & Release Android APK
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compilar y Publicar APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Clonar repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ Configurar Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 💾 Restaurar caché de Godot y plantillas
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/bin/godot
+            ~/.local/share/godot/export_templates
+          key: ${{ runner.os }}-godot-4.3-stable-templates-v1
+
+      - name: ⬇️ Descargar Godot Engine 4.3 y Export Templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          echo "Descargando binario de Godot 4.3..."
+          wget -q https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          sudo chmod +x /usr/local/bin/godot
+          rm -f Godot_v4.3-stable_linux.x86_64.zip
+
+          echo "Descargando plantillas de exportación..."
+          wget -q https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip -q Godot_v4.3-stable_export_templates.tpz
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          mv templates/* ~/.local/share/godot/export_templates/4.3.stable/
+          rm -rf templates Godot_v4.3-stable_export_templates.tpz
+
+      - name: 🧪 Ejecutar suite automatizada de pruebas
+        run: |
+          chmod +x run_tests.sh
+          ./run_tests.sh
+
+      - name: 📦 Compilar APK de Android
+        run: |
+          chmod +x export_apk.sh
+          ./export_apk.sh
+
+      - name: 📤 Subir APK como artefacto de Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: InazumaArcadeMobile-APK
+          path: build/android/InazumaArcadeMobile.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: 🚀 Publicar / Actualizar Release en GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x .github/scripts/publish_release.sh
+          ./.github/scripts/publish_release.sh
