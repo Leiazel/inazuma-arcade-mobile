@@ -18,8 +18,8 @@ const GOAL_CELEBRATION_DURATION: float = 1.5
 const PASS_COOLDOWN_REDUCTION: float = 1.2
 const STEAL_COOLDOWN_REDUCTION: float = 1.5
 
-@export var home_team_name: String = "RAIMON"
-@export var away_team_name: String = "ROYAL"
+@export var home_team_name: String = "TRES LEONES"
+@export var away_team_name: String = "FURIA ROJA"
 @export var match_duration_seconds: float = 90.0
 
 var home_score: int = 0
@@ -62,11 +62,11 @@ var _goalkeepers: Array = []
 # 5v5 Matchup presets (preserved for backwards compatibility)
 var matchups: Array[Dictionary] = [
 	{
-		"user_team_name": "RAIMON",
+		"user_team_name": "VERDEAMARELA",
 		"user_ids": ["bra_05", "bra_03", "bra_01", "bra_02"],
 		"user_gk": "gk_bra",
 		"user_color": "#FACC15",
-		"opp_team_name": "ROYAL",
+		"opp_team_name": "ESTRELLAS",
 		"opp_ids": ["star_04", "star_03", "star_02", "star_01"],
 		"opp_gk": "gk_star",
 		"opp_color": "#EF4444"
@@ -611,8 +611,8 @@ func _load_team_catalog() -> void:
 
 	if team_catalog.is_empty():
 		team_catalog = [
-			{"id": "team_brasil", "name": "RAIMON", "formation": ["bra_05", "bra_03", "bra_01", "bra_02"], "gk_id": "gk_bra", "color": "#FACC15", "secondary_color": "#16A34A", "alt_color": "#22C55E"},
-			{"id": "team_estrellas", "name": "ROYAL", "formation": ["star_04", "star_03", "star_02", "star_01"], "gk_id": "gk_star", "color": "#EF4444", "secondary_color": "#FFFFFF", "alt_color": "#F97316"}
+			{"id": "team_brasil", "name": "Selección Verdeamarela", "formation": ["bra_05", "bra_03", "bra_01", "bra_02"], "gk_id": "gk_bra", "color": "#FACC15", "secondary_color": "#16A34A", "alt_color": "#22C55E"},
+			{"id": "team_estrellas", "name": "Estrellas Mundiales", "formation": ["star_04", "star_03", "star_02", "star_01"], "gk_id": "gk_star", "color": "#EF4444", "secondary_color": "#FFFFFF", "alt_color": "#F97316"}
 		]
 
 func _find_star_portrait(formation: Array, players_data: Dictionary) -> String:

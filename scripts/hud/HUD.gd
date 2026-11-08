@@ -46,8 +46,8 @@ const MiniRadarScript = preload("res://scripts/hud/MiniRadar.gd")
 var home_score: int = 0
 var away_score: int = 0
 var match_time_seconds: float = 0.0
-var home_team_name: String = "RAIMON"
-var away_team_name: String = "ROYAL"
+var home_team_name: String = "TRES LEONES"
+var away_team_name: String = "FURIA ROJA"
 var home_team_color: Color = Color(0.78, 0.14, 0.16)
 var away_team_color: Color = Color(0.86, 0.65, 0.14)
 

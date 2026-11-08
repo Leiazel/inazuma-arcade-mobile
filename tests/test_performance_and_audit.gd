@@ -177,7 +177,7 @@ func test_tier_2_input_edge_hitstop_safety_and_9_team_catalog_integrity() -> voi
 	var expected_team_ids: Array[String] = [
 		"team_desafiantes", "team_veteranos", "team_estrellas",
 		"team_italia", "team_brasil", "team_argentina",
-		"team_raimon", "team_royal", "team_alianza"
+		"team_inglaterra", "team_espana", "team_francia"
 	]
 	assert_eq(m.team_catalog.size(), 9, "Catalog contains all 9 playable teams")
 	for idx in range(expected_team_ids.size()):
@@ -244,7 +244,7 @@ func test_tier_3_3600_frame_match_stress_and_latency_benchmark() -> void:
 	_active_root().add_child(m)
 	assert_eq(Player._live_actor_count, baseline_actors + 10, "Instantiating Match increments live actor refcount by 10")
 
-	# Run Instituto Raimon (index 6) vs Alianza Galáctica (index 8) for 3,600 physics frames (60s)
+	# Run Selección Tres Leones (index 6) vs Selección de los Galos (index 8) for 3,600 physics frames (60s)
 	m.start_quick_match(6, 8, 90.0)
 	var dt: float = 1.0 / 60.0
 	var frame_times_usec := PackedInt64Array()

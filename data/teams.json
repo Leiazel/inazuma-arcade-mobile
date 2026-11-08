@@ -66,38 +66,38 @@
       "gk_id": "gk_arg",
       "description": "El Jefe Final 5v5: garra incansable, gambeta cósmica, mística campeona y poder de fuego letal."
     },
-    "team_raimon": {
-      "id": "team_raimon",
-      "name": "Instituto Raimon",
+    "team_inglaterra": {
+      "id": "team_inglaterra",
+      "name": "Selección Tres Leones",
       "level": 4,
-      "color": "#F59E0B",
-      "secondary_color": "#1D4ED8",
-      "alt_color": "#1D4ED8",
-      "formation": ["raimon_04", "raimon_02", "raimon_03", "home_01"],
-      "gk_id": "home_gk",
-      "description": "Espíritu relámpago: velocidad huracanada atrás, visión fénix en el medio y el legendario Tornado de Fuego."
+      "color": "#F8FAFC",
+      "secondary_color": "#1E3A8A",
+      "alt_color": "#DC2626",
+      "formation": ["eng_04", "eng_02", "eng_03", "eng_01"],
+      "gk_id": "gk_eng",
+      "description": "Fuerza aérea letal, despliegue físico implacable y cañonazos de media distancia con el poder del Huracán."
     },
-    "team_royal": {
-      "id": "team_royal",
-      "name": "Academia Imperial",
+    "team_espana": {
+      "id": "team_espana",
+      "name": "Selección Furia Roja",
       "level": 5,
-      "color": "#10B981",
-      "secondary_color": "#7F1D1D",
-      "alt_color": "#F43F5E",
-      "formation": ["royal_04", "royal_03", "away_01", "royal_02"],
-      "gk_id": "away_gk",
-      "description": "Disciplina táctica absoluta: pases milimétricos, ilusiones ópticas y la letal artillería imperial."
+      "color": "#DC2626",
+      "secondary_color": "#FACC15",
+      "alt_color": "#1E293B",
+      "formation": ["esp_04", "esp_02", "esp_01", "esp_03"],
+      "gk_id": "gk_esp",
+      "description": "Tiki-taka supremo, control hipnótico del balón y transiciones quirúrgicas con el toque del Ilusionista."
     },
-    "team_alianza": {
-      "id": "team_alianza",
-      "name": "Alianza Galáctica",
+    "team_francia": {
+      "id": "team_francia",
+      "name": "Selección de los Galos",
       "level": 6,
-      "color": "#EC4899",
-      "secondary_color": "#0F172A",
-      "alt_color": "#22D3EE",
-      "formation": ["gal_03", "arg_05", "gal_02", "gal_01"],
-      "gk_id": "gal_gk",
-      "description": "Élite intergaláctica de velocidad sideral, regate diamantino y cañonazos meteóricos imparables."
+      "color": "#1D4ED8",
+      "secondary_color": "#FFFFFF",
+      "alt_color": "#EF4444",
+      "formation": ["fra_03", "fra_04", "fra_01", "fra_02"],
+      "gk_id": "gk_fra",
+      "description": "Elegancia imperial, zancada atlética arrolladora y pegada letal con la magia del Maestro Galo."
     }
   }
 }
