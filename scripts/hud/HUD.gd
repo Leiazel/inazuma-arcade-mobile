@@ -46,8 +46,8 @@ const MiniRadarScript = preload("res://scripts/hud/MiniRadar.gd")
 var home_score: int = 0
 var away_score: int = 0
 var match_time_seconds: float = 0.0
-var home_team_name: String = "RAIMON"
-var away_team_name: String = "ROYAL"
+var home_team_name: String = "TRES LEONES"
+var away_team_name: String = "FURIA ROJA"
 var home_team_color: Color = Color(0.78, 0.14, 0.16)
 var away_team_color: Color = Color(0.86, 0.65, 0.14)
 
@@ -70,6 +70,9 @@ var _icon_cache: Dictionary = {}
 var _home_card_refs: Dictionary = {}
 var _away_card_refs: Dictionary = {}
 var _pause_refs: Dictionary = {}
+var _last_time_sec: int = -1
+var _last_home_score: int = -1
+var _last_away_score: int = -1
 
 signal match_start_requested(home_index: int, away_index: int)
 signal quick_match_requested(home_index: int, away_index: int, duration_seconds: float)
@@ -216,6 +219,17 @@ func _load_cached_texture(path: String) -> Texture2D:
 	if tex != null:
 		_icon_cache[path] = tex
 	return tex
+
+func preload_match_assets(icon_paths: Array, portrait_paths: Array) -> void:
+	for p in icon_paths:
+		var s := str(p)
+		if not s.is_empty():
+			_load_cached_texture(s)
+	if skill_banner != null and skill_banner.has_method("preload_portrait"):
+		for p in portrait_paths:
+			var s := str(p)
+			if not s.is_empty():
+				skill_banner.call("preload_portrait", s)
 
 # ==============================================================================
 # BROADCAST BOTTOM-CENTER HUD DOCK & STATUS BADGE
@@ -408,7 +422,13 @@ func _create_bottom_player_card(node_name: String, pos: Vector2, is_home: bool) 
 		"status_lbl": status_lbl,
 		"bar": bar,
 		"bar_fill": bar_fill,
-		"last_icon_path": ""
+		"last_icon_path": "",
+		"last_name": "",
+		"last_role": "",
+		"last_status": "",
+		"last_status_col": Color(-1.0, -1.0, -1.0, -1.0),
+		"last_fill_col": Color(-1.0, -1.0, -1.0, -1.0),
+		"last_bar_q": -1
 	}
 
 func set_team_colors(home_col: Color, away_col: Color) -> void:
@@ -452,30 +472,58 @@ func _populate_player_card(refs: Dictionary, p_node: Node, is_home: bool) -> voi
 	var bar_fill := refs["bar_fill"] as StyleBoxFlat
 	var icon_rect := refs["icon"] as TextureRect
 
-	name_lbl.text = p_name.to_upper()
-	role_lbl.text = "[%s]" % p_role.to_upper()
+	var upper_name := p_name.to_upper()
+	if refs["last_name"] != upper_name:
+		refs["last_name"] = upper_name
+		name_lbl.text = upper_name
+
+	var role_txt := "[%s]" % p_role.to_upper()
+	if refs["last_role"] != role_txt:
+		refs["last_role"] = role_txt
+		role_lbl.text = role_txt
 
 	if refs["last_icon_path"] != icon_path:
 		refs["last_icon_path"] = icon_path
 		icon_rect.texture = _load_cached_texture(icon_path)
 
+	var bar_val: float = 100.0
+	var fill_col: Color = THEME_GOLD
+	var status_txt: String = ""
+	var status_col: Color = THEME_TEXT_DARK
+
 	if is_home and is_charging:
 		var pct: float = clampf(charge_t / 0.60, 0.0, 1.0)
-		bar.value = pct * 100.0
-		bar_fill.bg_color = THEME_RED_PRIMARY
-		status_lbl.text = "⚡ CARGANDO TIRO (%d%%)" % int(round(pct * 100.0))
-		status_lbl.add_theme_color_override("font_color", THEME_RED_PRIMARY)
+		var pct_int: int = int(round(pct * 100.0))
+		bar_val = float(pct_int)
+		fill_col = THEME_RED_PRIMARY
+		status_txt = "⚡ CARGANDO TIRO (%d%%)" % pct_int
+		status_col = THEME_RED_PRIMARY
 	elif cd <= 0.01:
-		bar.value = 100.0
-		bar_fill.bg_color = THEME_GOLD if is_home else THEME_RED_PRIMARY
-		status_lbl.text = "★ %s" % ab_name.to_upper()
-		status_lbl.add_theme_color_override("font_color", THEME_RED_DARK if is_home else THEME_TEXT_DARK)
+		bar_val = 100.0
+		fill_col = THEME_GOLD if is_home else THEME_RED_PRIMARY
+		status_txt = "★ %s" % ab_name.to_upper()
+		status_col = THEME_RED_DARK if is_home else THEME_TEXT_DARK
 	else:
 		var ready_pct: float = clampf(1.0 - (cd / max_cd), 0.0, 1.0)
-		bar.value = ready_pct * 100.0
-		bar_fill.bg_color = Color(0.68, 0.45, 0.22, 0.90)
-		status_lbl.text = "%s · %.1fs" % [ab_name, cd]
-		status_lbl.add_theme_color_override("font_color", THEME_TEXT_MUTED)
+		bar_val = ready_pct * 100.0
+		fill_col = Color(0.68, 0.45, 0.22, 0.90)
+		var cd_tenths: float = round(cd * 10.0) * 0.1
+		status_txt = "%s · %.1fs" % [ab_name, cd_tenths]
+		status_col = THEME_TEXT_MUTED
+
+	var bar_q: int = int(round(bar_val * 2.0))
+	if refs["last_bar_q"] != bar_q:
+		refs["last_bar_q"] = bar_q
+		bar.value = bar_val
+	if refs["last_fill_col"] != fill_col:
+		refs["last_fill_col"] = fill_col
+		bar_fill.bg_color = fill_col
+	if refs["last_status"] != status_txt:
+		refs["last_status"] = status_txt
+		status_lbl.text = status_txt
+	if refs["last_status_col"] != status_col:
+		refs["last_status_col"] = status_col
+		status_lbl.add_theme_color_override("font_color", status_col)
 
 # ==============================================================================
 # PAUSE MENU OVERLAY (BEIGE / CRIMSON RED / WHITE / ROYAL GOLD)
@@ -999,8 +1047,9 @@ func _style_single_toggle(btn: Button, active: bool) -> void:
 	btn.add_theme_stylebox_override("hover", st)
 
 func _create_touch_team_grid_selector(caption: String, teams: Array[Dictionary], default_idx: int, compact: bool) -> VBoxContainer:
+	var dense: bool = teams.size() > 6
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 8)
+	box.add_theme_constant_override("separation", 6 if dense else 8)
 
 	var label := Label.new()
 	label.text = caption
@@ -1021,7 +1070,7 @@ func _create_touch_team_grid_selector(caption: String, teams: Array[Dictionary],
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 8)
+	grid.add_theme_constant_override("v_separation", 6 if dense else 8)
 	box.add_child(grid)
 
 	# Selected Team Info Card below the Grid
@@ -1033,8 +1082,8 @@ func _create_touch_team_grid_selector(caption: String, teams: Array[Dictionary],
 	pst.set_corner_radius_all(10)
 	pst.content_margin_left = 10
 	pst.content_margin_right = 10
-	pst.content_margin_top = 6
-	pst.content_margin_bottom = 6
+	pst.content_margin_top = 5 if dense else 6
+	pst.content_margin_bottom = 5 if dense else 6
 	preview_card.add_theme_stylebox_override("panel", pst)
 	box.add_child(preview_card)
 
@@ -1043,7 +1092,7 @@ func _create_touch_team_grid_selector(caption: String, teams: Array[Dictionary],
 	preview_card.add_child(card_hbox)
 
 	var portrait := TextureRect.new()
-	portrait.custom_minimum_size = Vector2(54, 54) if compact else Vector2(64, 64)
+	portrait.custom_minimum_size = (Vector2(48, 48) if compact else Vector2(56, 56)) if dense else (Vector2(54, 54) if compact else Vector2(64, 64))
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	card_hbox.add_child(portrait)
@@ -1066,29 +1115,58 @@ func _create_touch_team_grid_selector(caption: String, teams: Array[Dictionary],
 	roster.add_theme_font_size_override("font_size", 11)
 	info_vbox.add_child(roster)
 
+	var card_min_size: Vector2
+	var port_min_size: Vector2
+	if dense:
+		card_min_size = Vector2(142, 68) if compact else Vector2(166, 74)
+		port_min_size = Vector2(30, 30) if compact else Vector2(34, 34)
+	else:
+		card_min_size = Vector2(148, 86) if compact else Vector2(172, 102)
+		port_min_size = Vector2(36, 36) if compact else Vector2(42, 42)
+
+	var sel_st := StyleBoxFlat.new()
+	sel_st.set_corner_radius_all(10)
+	sel_st.bg_color = THEME_RED_PRIMARY
+	sel_st.border_color = THEME_GOLD_BRIGHT
+	sel_st.set_border_width_all(3)
+	var sel_hover_st := sel_st.duplicate() as StyleBoxFlat
+	sel_hover_st.border_color = THEME_GOLD_BRIGHT
+
+	var idle_st := StyleBoxFlat.new()
+	idle_st.set_corner_radius_all(10)
+	idle_st.bg_color = THEME_BG_CARD
+	idle_st.border_color = THEME_GOLD
+	idle_st.set_border_width_all(2)
+	var idle_hover_st := idle_st.duplicate() as StyleBoxFlat
+	idle_hover_st.border_color = THEME_RED_PRIMARY
+
 	var card_buttons: Array[Button] = []
 	for i in range(teams.size()):
 		var t: Dictionary = teams[i]
 		var card_btn := Button.new()
 		card_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		card_btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		card_btn.custom_minimum_size = Vector2(148, 86) if compact else Vector2(172, 102)
+		card_btn.custom_minimum_size = card_min_size
 		card_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		card_btn.set_meta("team_idx", i)
+		card_btn.set_meta("sel_st", sel_st)
+		card_btn.set_meta("sel_hover_st", sel_hover_st)
+		card_btn.set_meta("idle_st", idle_st)
+		card_btn.set_meta("idle_hover_st", idle_hover_st)
 
 		var margin := MarginContainer.new()
 		margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		margin.add_theme_constant_override("margin_left", 8)
-		margin.add_theme_constant_override("margin_right", 8)
-		margin.add_theme_constant_override("margin_top", 6)
-		margin.add_theme_constant_override("margin_bottom", 6)
+		margin.add_theme_constant_override("margin_left", 6 if dense else 8)
+		margin.add_theme_constant_override("margin_right", 6 if dense else 8)
+		margin.add_theme_constant_override("margin_top", 4 if dense else 6)
+		margin.add_theme_constant_override("margin_bottom", 4 if dense else 6)
 		card_btn.add_child(margin)
 
 		var vb := VBoxContainer.new()
 		vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		vb.alignment = BoxContainer.ALIGNMENT_CENTER
-		vb.add_theme_constant_override("separation", 4)
+		vb.add_theme_constant_override("separation", 2 if dense else 4)
 		margin.add_child(vb)
 
 		var top_hb := HBoxContainer.new()
@@ -1099,7 +1177,7 @@ func _create_touch_team_grid_selector(caption: String, teams: Array[Dictionary],
 
 		var mini_port := TextureRect.new()
 		mini_port.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		mini_port.custom_minimum_size = Vector2(36, 36) if compact else Vector2(42, 42)
+		mini_port.custom_minimum_size = port_min_size
 		mini_port.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		mini_port.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		mini_port.texture = _load_cached_texture(str(t.get("star_portrait", "")))
@@ -1112,7 +1190,7 @@ func _create_touch_team_grid_selector(caption: String, teams: Array[Dictionary],
 
 		var color_swatch := ColorRect.new()
 		color_swatch.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		color_swatch.custom_minimum_size = Vector2(28, 10)
+		color_swatch.custom_minimum_size = Vector2(26, 8) if dense else Vector2(28, 10)
 		color_swatch.color = Color.from_string(str(t.get("color", "#EF4444")), THEME_RED_PRIMARY)
 		badge_vb.add_child(color_swatch)
 
@@ -1129,8 +1207,11 @@ func _create_touch_team_grid_selector(caption: String, teams: Array[Dictionary],
 		t_name_lbl.text = str(t.get("name", "Equipo"))
 		t_name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		t_name_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		t_name_lbl.add_theme_font_size_override("font_size", 11 if compact else 12)
+		t_name_lbl.add_theme_font_size_override("font_size", (10 if compact else 11) if dense else (11 if compact else 12))
 		vb.add_child(t_name_lbl)
+
+		card_btn.set_meta("name_lbl", t_name_lbl)
+		card_btn.set_meta("lvl_lbl", lvl_lbl)
 
 		var idx_capture: int = i
 		card_btn.pressed.connect(func():
@@ -1166,27 +1247,29 @@ func _style_team_grid_cards(card_buttons: Array[Button], selected_idx: int) -> v
 		if not is_instance_valid(btn):
 			continue
 		var is_sel: bool = (i == selected_idx)
-		var st := StyleBoxFlat.new()
-		st.set_corner_radius_all(10)
-		if is_sel:
-			st.bg_color = THEME_RED_PRIMARY
-			st.border_color = THEME_GOLD_BRIGHT
-			st.set_border_width_all(3)
-		else:
-			st.bg_color = THEME_BG_CARD
-			st.border_color = THEME_GOLD
-			st.set_border_width_all(2)
-		var hover_st := st.duplicate() as StyleBoxFlat
-		hover_st.border_color = THEME_GOLD_BRIGHT if is_sel else THEME_RED_PRIMARY
+		var st: StyleBoxFlat = btn.get_meta("sel_st", null) if is_sel else btn.get_meta("idle_st", null)
+		var hover_st: StyleBoxFlat = btn.get_meta("sel_hover_st", null) if is_sel else btn.get_meta("idle_hover_st", null)
+		if st == null:
+			st = StyleBoxFlat.new()
+			st.set_corner_radius_all(10)
+			st.bg_color = THEME_RED_PRIMARY if is_sel else THEME_BG_CARD
+			st.border_color = THEME_GOLD_BRIGHT if is_sel else THEME_GOLD
+			st.set_border_width_all(3 if is_sel else 2)
+			hover_st = st.duplicate() as StyleBoxFlat
+			hover_st.border_color = THEME_GOLD_BRIGHT if is_sel else THEME_RED_PRIMARY
 		btn.add_theme_stylebox_override("normal", st)
 		btn.add_theme_stylebox_override("hover", hover_st)
 		btn.add_theme_stylebox_override("pressed", st)
 		btn.add_theme_stylebox_override("focus", hover_st)
 
-		var name_lbl := btn.find_child("TeamNameLabel", true, false) as Label
+		var name_lbl: Label = btn.get_meta("name_lbl", null) as Label
+		if name_lbl == null:
+			name_lbl = btn.find_child("TeamNameLabel", true, false) as Label
 		if name_lbl != null:
 			name_lbl.add_theme_color_override("font_color", THEME_WHITE if is_sel else THEME_TEXT_DARK)
-		var lvl_lbl := btn.find_child("LevelLabel", true, false) as Label
+		var lvl_lbl: Label = btn.get_meta("lvl_lbl", null) as Label
+		if lvl_lbl == null:
+			lvl_lbl = btn.find_child("LevelLabel", true, false) as Label
 		if lvl_lbl != null:
 			lvl_lbl.add_theme_color_override("font_color", THEME_GOLD_BRIGHT if is_sel else THEME_RED_PRIMARY)
 
@@ -1513,29 +1596,36 @@ func _build_ui_if_needed() -> void:
 func set_score(home: int, away: int) -> void:
 	home_score = maxi(0, home)
 	away_score = maxi(0, away)
-	if home_score_label != null:
-		home_score_label.text = str(home_score)
-	if away_score_label != null:
-		away_score_label.text = str(away_score)
+	var h_lbl := home_score_label
+	if h_lbl != null and _last_home_score != home_score:
+		_last_home_score = home_score
+		h_lbl.text = str(home_score)
+	var a_lbl := away_score_label
+	if a_lbl != null and _last_away_score != away_score:
+		_last_away_score = away_score
+		a_lbl.text = str(away_score)
 
 ## Formats and updates the match timer in MM:SS format
 func set_time(seconds: float) -> void:
 	match_time_seconds = maxf(0.0, seconds)
 	var total_sec: int = int(match_time_seconds)
-	var mins: int = total_sec / 60
-	var secs: int = total_sec % 60
-	var formatted = "%02d:%02d" % [mins, secs]
-	if time_label != null:
-		time_label.text = formatted
+	var t_lbl := time_label
+	if t_lbl != null and _last_time_sec != total_sec:
+		_last_time_sec = total_sec
+		var mins: int = total_sec / 60
+		var secs: int = total_sec % 60
+		t_lbl.text = "%02d:%02d" % [mins, secs]
 
 ## Updates the display names of both teams
 func set_team_names(home: String, away: String) -> void:
 	home_team_name = home
 	away_team_name = away
-	if home_name_label != null:
-		home_name_label.text = home_team_name
-	if away_name_label != null:
-		away_name_label.text = away_team_name
+	var hn_lbl := home_name_label
+	if hn_lbl != null and hn_lbl.text != home_team_name:
+		hn_lbl.text = home_team_name
+	var an_lbl := away_name_label
+	if an_lbl != null and an_lbl.text != away_team_name:
+		an_lbl.text = away_team_name
 
 ## Triggers the transient skill announcement banner outside the action corridor
 func display_skill_banner(player_name: String, skill_name: String, element: String = "FIRE", portrait_path: String = "") -> void:

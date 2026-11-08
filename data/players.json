@@ -742,99 +742,353 @@
       "portrait": "res://assets/sprites/gk_leg_portrait.png",
       "icon": "res://assets/sprites/gk_leg_icon.png"
     },
-    "home_01": {
-      "id": "home_01",
-      "name": "Axel Blaze",
-      "team": "team_home",
+    "eng_01": {
+      "id": "eng_01",
+      "name": "El Huracán",
+      "team": "team_inglaterra",
       "role": "FW",
       "stats": {
-        "velocidad": 88,
-        "control": 85,
-        "pase": 82,
-        "tiro": 94,
-        "defensa": 50
+        "velocidad": 86,
+        "control": 88,
+        "pase": 87,
+        "tiro": 96,
+        "defensa": 48
       },
       "ability": {
-        "name": "Tornado de Fuego",
+        "name": "Cañón del Huracán",
         "type": "shot",
-        "cooldown": 7.0,
-        "description": "Disparo ígneo legendario envuelto en un torbellino de llamas."
+        "cooldown": 8.0,
+        "description": "Bombazo demoledor desde la frontal que desgarra el viento hacia la red."
       },
-      "anims": "res://data/anims/bra_01.json",
-      "sheet": "res://assets/sprites/bra_01_aligned.png",
-      "portrait": "res://assets/sprites/bra_01_portrait.png",
-      "icon": "res://assets/sprites/bra_01_icon.png"
+      "anims": "res://data/anims/eng_01.json",
+      "sheet": "res://assets/sprites/eng_01_aligned.png",
+      "portrait": "res://assets/sprites/eng_01_portrait.png",
+      "icon": "res://assets/sprites/eng_01_icon.png"
     },
-    "home_gk": {
-      "id": "home_gk",
-      "name": "Mark Evans",
-      "team": "team_home",
+    "eng_02": {
+      "id": "eng_02",
+      "name": "El Conquistador",
+      "team": "team_inglaterra",
+      "role": "MF",
+      "stats": {
+        "velocidad": 89,
+        "control": 92,
+        "pase": 91,
+        "tiro": 88,
+        "defensa": 76
+      },
+      "ability": {
+        "name": "Zancada Real",
+        "type": "dribble",
+        "cooldown": 7.5,
+        "description": "Despliegue atlético imperial que rompe líneas defensivas a pura zancada."
+      },
+      "anims": "res://data/anims/eng_02.json",
+      "sheet": "res://assets/sprites/eng_02_aligned.png",
+      "portrait": "res://assets/sprites/eng_02_portrait.png",
+      "icon": "res://assets/sprites/eng_02_icon.png"
+    },
+    "eng_03": {
+      "id": "eng_03",
+      "name": "El Dinamo",
+      "team": "team_inglaterra",
+      "role": "MF",
+      "stats": {
+        "velocidad": 85,
+        "control": 90,
+        "pase": 95,
+        "tiro": 93,
+        "defensa": 82
+      },
+      "ability": {
+        "name": "Misil de Anfield",
+        "type": "shot",
+        "cooldown": 8.5,
+        "description": "Proyectil supersónico de media distancia que sacude el arco rival."
+      },
+      "anims": "res://data/anims/eng_03.json",
+      "sheet": "res://assets/sprites/eng_03_aligned.png",
+      "portrait": "res://assets/sprites/eng_03_portrait.png",
+      "icon": "res://assets/sprites/eng_03_icon.png"
+    },
+    "eng_04": {
+      "id": "eng_04",
+      "name": "El Jabalí",
+      "team": "team_inglaterra",
+      "role": "DF",
+      "stats": {
+        "velocidad": 87,
+        "control": 84,
+        "pase": 82,
+        "tiro": 85,
+        "defensa": 89
+      },
+      "ability": {
+        "name": "Carga Feroz",
+        "type": "defense",
+        "cooldown": 7.5,
+        "description": "Barrida contundente a pura potencia física que desarma al atacante."
+      },
+      "anims": "res://data/anims/eng_04.json",
+      "sheet": "res://assets/sprites/eng_04_aligned.png",
+      "portrait": "res://assets/sprites/eng_04_portrait.png",
+      "icon": "res://assets/sprites/eng_04_icon.png"
+    },
+    "gk_eng": {
+      "id": "gk_eng",
+      "name": "El Guardián del Támesis",
+      "team": "team_inglaterra",
       "role": "GK",
       "stats": {
-        "reflejos": 95,
-        "velocidad": 75,
-        "control": 80,
-        "pase": 80,
-        "tiro": 60,
-        "defensa": 96
+        "reflejos": 93,
+        "velocidad": 80,
+        "control": 78,
+        "pase": 82,
+        "tiro": 45,
+        "defensa": 94
       },
       "ability": {
-        "name": "Mano Celestial",
+        "name": "Muralla del Támesis",
         "type": "gk_save",
         "cooldown": 9.0,
-        "description": "Una gigantesca mano de energía dorada detiene cualquier balón."
+        "description": "Salto elástico felino con guantes de acero que despeja disparos a quemarropa."
       },
-      "anims": "res://data/anims/gk_bra.json",
-      "sheet": "res://assets/sprites/gk_bra_aligned.png",
-      "portrait": "res://assets/sprites/gk_bra_portrait.png",
-      "icon": "res://assets/sprites/gk_bra_icon.png"
+      "anims": "res://data/anims/gk_eng.json",
+      "sheet": "res://assets/sprites/gk_eng_aligned.png",
+      "portrait": "res://assets/sprites/gk_eng_portrait.png",
+      "icon": "res://assets/sprites/gk_eng_icon.png"
     },
-    "away_01": {
-      "id": "away_01",
-      "name": "Jude Sharp",
-      "team": "team_away",
+    "esp_01": {
+      "id": "esp_01",
+      "name": "El Ilusionista",
+      "team": "team_espana",
+      "role": "MF",
+      "stats": {
+        "velocidad": 87,
+        "control": 97,
+        "pase": 96,
+        "tiro": 86,
+        "defensa": 65
+      },
+      "ability": {
+        "name": "Croqueta Cósmica",
+        "type": "dribble",
+        "cooldown": 7.5,
+        "description": "Cambio de pie mágico e imperceptible que deja a los rivales desorientados."
+      },
+      "anims": "res://data/anims/esp_01.json",
+      "sheet": "res://assets/sprites/esp_01_aligned.png",
+      "portrait": "res://assets/sprites/esp_01_portrait.png",
+      "icon": "res://assets/sprites/esp_01_icon.png"
+    },
+    "esp_02": {
+      "id": "esp_02",
+      "name": "El Metrónomo",
+      "team": "team_espana",
       "role": "MF",
       "stats": {
         "velocidad": 84,
-        "control": 92,
-        "pase": 95,
-        "tiro": 84,
-        "defensa": 78
+        "control": 96,
+        "pase": 98,
+        "tiro": 82,
+        "defensa": 74
       },
       "ability": {
-        "name": "Balón Ilusión",
-        "type": "dribble",
+        "name": "Pase Telescópico",
+        "type": "pass",
         "cooldown": 7.5,
-        "description": "Múltiples copias espectrales del balón confunden por completo al rival."
+        "description": "Envío milimétrico con compás que desarticula cualquier bloque defensivo."
       },
-      "anims": "res://data/anims/star_01.json",
-      "sheet": "res://assets/sprites/star_01_aligned.png",
-      "portrait": "res://assets/sprites/star_01_portrait.png",
-      "icon": "res://assets/sprites/star_01_icon.png"
+      "anims": "res://data/anims/esp_02.json",
+      "sheet": "res://assets/sprites/esp_02_aligned.png",
+      "portrait": "res://assets/sprites/esp_02_portrait.png",
+      "icon": "res://assets/sprites/esp_02_icon.png"
     },
-    "away_gk": {
-      "id": "away_gk",
-      "name": "Joe King",
-      "team": "team_away",
+    "esp_03": {
+      "id": "esp_03",
+      "name": "El Niño",
+      "team": "team_espana",
+      "role": "FW",
+      "stats": {
+        "velocidad": 93,
+        "control": 88,
+        "pase": 81,
+        "tiro": 95,
+        "defensa": 52
+      },
+      "ability": {
+        "name": "Estocada de Furia",
+        "type": "shot",
+        "cooldown": 8.5,
+        "description": "Definición cruzada letal a máxima velocidad que silencia el estadio rival."
+      },
+      "anims": "res://data/anims/esp_03.json",
+      "sheet": "res://assets/sprites/esp_03_aligned.png",
+      "portrait": "res://assets/sprites/esp_03_portrait.png",
+      "icon": "res://assets/sprites/esp_03_icon.png"
+    },
+    "esp_04": {
+      "id": "esp_04",
+      "name": "El Muro Indomable",
+      "team": "team_espana",
+      "role": "DF",
+      "stats": {
+        "velocidad": 86,
+        "control": 82,
+        "pase": 80,
+        "tiro": 68,
+        "defensa": 96
+      },
+      "ability": {
+        "name": "Corazón de León",
+        "type": "defense",
+        "cooldown": 7.0,
+        "description": "Corte heroico arrojando el alma en cada pelota para clausurar el área."
+      },
+      "anims": "res://data/anims/esp_04.json",
+      "sheet": "res://assets/sprites/esp_04_aligned.png",
+      "portrait": "res://assets/sprites/esp_04_portrait.png",
+      "icon": "res://assets/sprites/esp_04_icon.png"
+    },
+    "gk_esp": {
+      "id": "gk_esp",
+      "name": "El Santo",
+      "team": "team_espana",
       "role": "GK",
       "stats": {
-        "reflejos": 92,
-        "velocidad": 78,
-        "control": 75,
-        "pase": 75,
-        "tiro": 45,
-        "defensa": 93
+        "reflejos": 96,
+        "velocidad": 81,
+        "control": 80,
+        "pase": 79,
+        "tiro": 42,
+        "defensa": 95
       },
       "ability": {
-        "name": "Colmillo de Pantera",
+        "name": "Milagro Santo",
         "type": "gk_save",
         "cooldown": 9.0,
-        "description": "Atrapa el disparo con garras feroces y reflejos felinos."
+        "description": "Intervención milagrosa mano a mano que desvía con la punta del botín balones imposibles."
       },
-      "anims": "res://data/anims/gk_star.json",
-      "sheet": "res://assets/sprites/gk_star_aligned.png",
-      "portrait": "res://assets/sprites/gk_star_portrait.png",
-      "icon": "res://assets/sprites/gk_star_icon.png"
+      "anims": "res://data/anims/gk_esp.json",
+      "sheet": "res://assets/sprites/gk_esp_aligned.png",
+      "portrait": "res://assets/sprites/gk_esp_portrait.png",
+      "icon": "res://assets/sprites/gk_esp_icon.png"
+    },
+    "fra_01": {
+      "id": "fra_01",
+      "name": "El Maestro Galo",
+      "team": "team_francia",
+      "role": "MF",
+      "stats": {
+        "velocidad": 88,
+        "control": 97,
+        "pase": 95,
+        "tiro": 93,
+        "defensa": 68
+      },
+      "ability": {
+        "name": "Ruleta Imperial",
+        "type": "dribble",
+        "cooldown": 8.0,
+        "description": "Giro de 360 grados de pura elegancia sobre el balón que deja clavados a los rivales."
+      },
+      "anims": "res://data/anims/fra_01.json",
+      "sheet": "res://assets/sprites/fra_01_aligned.png",
+      "portrait": "res://assets/sprites/fra_01_portrait.png",
+      "icon": "res://assets/sprites/fra_01_icon.png"
+    },
+    "fra_02": {
+      "id": "fra_02",
+      "name": "La Saeta de Bondy",
+      "team": "team_francia",
+      "role": "FW",
+      "stats": {
+        "velocidad": 97,
+        "control": 91,
+        "pase": 86,
+        "tiro": 94,
+        "defensa": 46
+      },
+      "ability": {
+        "name": "Relámpago Galo",
+        "type": "shot",
+        "cooldown": 8.5,
+        "description": "Sprint supersónico seguido de un remate en carrera imposible de anticipar."
+      },
+      "anims": "res://data/anims/fra_02.json",
+      "sheet": "res://assets/sprites/fra_02_aligned.png",
+      "portrait": "res://assets/sprites/fra_02_portrait.png",
+      "icon": "res://assets/sprites/fra_02_icon.png"
+    },
+    "fra_03": {
+      "id": "fra_03",
+      "name": "El Pulpo de Hierro",
+      "team": "team_francia",
+      "role": "DF",
+      "stats": {
+        "velocidad": 85,
+        "control": 86,
+        "pase": 88,
+        "tiro": 75,
+        "defensa": 94
+      },
+      "ability": {
+        "name": "Corte de Acero",
+        "type": "defense",
+        "cooldown": 7.5,
+        "description": "Extensión infinita de piernas que corta limpiamente cualquier avance."
+      },
+      "anims": "res://data/anims/fra_03.json",
+      "sheet": "res://assets/sprites/fra_03_aligned.png",
+      "portrait": "res://assets/sprites/fra_03_portrait.png",
+      "icon": "res://assets/sprites/fra_03_icon.png"
+    },
+    "fra_04": {
+      "id": "fra_04",
+      "name": "Tití Galáctico",
+      "team": "team_francia",
+      "role": "MF",
+      "stats": {
+        "velocidad": 92,
+        "control": 93,
+        "pase": 90,
+        "tiro": 91,
+        "defensa": 56
+      },
+      "ability": {
+        "name": "Efecto Aterciopelado",
+        "type": "shot",
+        "cooldown": 8.0,
+        "description": "Disparo sutil con rosca envolvente que se clava en el ángulo más lejano."
+      },
+      "anims": "res://data/anims/fra_04.json",
+      "sheet": "res://assets/sprites/fra_04_aligned.png",
+      "portrait": "res://assets/sprites/fra_04_portrait.png",
+      "icon": "res://assets/sprites/fra_04_icon.png"
+    },
+    "gk_fra": {
+      "id": "gk_fra",
+      "name": "El Guardián Galo",
+      "team": "team_francia",
+      "role": "GK",
+      "stats": {
+        "reflejos": 94,
+        "velocidad": 82,
+        "control": 81,
+        "pase": 83,
+        "tiro": 44,
+        "defensa": 94
+      },
+      "ability": {
+        "name": "Reflejo Galo",
+        "type": "gk_save",
+        "cooldown": 9.0,
+        "description": "Palomita espectacular a mano cambiada neutralizando el peligro aéreo."
+      },
+      "anims": "res://data/anims/gk_fra.json",
+      "sheet": "res://assets/sprites/gk_fra_aligned.png",
+      "portrait": "res://assets/sprites/gk_fra_portrait.png",
+      "icon": "res://assets/sprites/gk_fra_icon.png"
     }
   }
 }

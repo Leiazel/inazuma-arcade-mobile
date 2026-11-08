@@ -26,6 +26,7 @@ extends Camera2D
 @export var target_ball: Node2D = null
 @export var target_carrier: CharacterBody2D = null
 @export var active_player: CharacterBody2D = null
+@export var managed_externally: bool = false
 
 var trauma: float = 0.0
 var noise: FastNoiseLite = null
@@ -41,32 +42,40 @@ func _ready() -> void:
 	noise.seed = randi()
 	noise.frequency = 0.045
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	set_process(not managed_externally)
+
+func set_managed_externally(external: bool) -> void:
+	managed_externally = external
+	set_process(not managed_externally)
 
 ## Injects trauma for procedural shake (e.g. on super shot, collision, or tackle)
 func add_trauma(amount: float) -> void:
 	trauma = clampf(trauma + amount, 0.0, 1.0)
 
 func _process(delta: float) -> void:
-	if not is_inside_tree():
+	if managed_externally or not is_inside_tree():
 		return
-	
-	# Auto-locate targets if not explicitly bound
-	var ball_node = target_ball
+
+	# Auto-locate targets if not explicitly bound (standalone mode)
+	var ball_node := target_ball
 	if not is_instance_valid(ball_node):
-		var balls = get_tree().get_nodes_in_group("ball")
+		var balls := get_tree().get_nodes_in_group("ball")
 		if balls.size() > 0:
 			ball_node = balls[0] as Node2D
+			target_ball = ball_node
 
-	var carrier_node = target_carrier
+	var carrier_node := target_carrier
 	if is_instance_valid(ball_node) and ball_node.get("carrier") != null:
 		carrier_node = ball_node.get("carrier")
 
-	var act_node = active_player
-	if not is_instance_valid(act_node):
-		var players = get_tree().get_nodes_in_group("players")
+	var act_node := active_player
+	if not is_instance_valid(act_node) or act_node.get("is_user_controlled") != true:
+		act_node = null
+		var players := get_tree().get_nodes_in_group("players")
 		for p in players:
 			if is_instance_valid(p) and p.get("is_user_controlled") == true:
 				act_node = p as CharacterBody2D
+				active_player = act_node
 				break
 
 	update_camera(delta, ball_node, carrier_node, act_node)

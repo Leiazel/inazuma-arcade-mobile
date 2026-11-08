@@ -139,11 +139,11 @@ func test_tier_1_audio_controls_charging_and_bottom_hud() -> void:
 	var tourn_cards: Array = hud.tournament_team_picker.get_meta("card_buttons", [])
 	var quick_home_cards: Array = hud.home_team_picker.get_meta("card_buttons", [])
 	var quick_away_cards: Array = hud.away_team_picker.get_meta("card_buttons", [])
-	assert_eq(tourn_cards.size(), 6, "Tournament tab renders 6 direct-tap Team Cards in 3x2 grid")
-	assert_eq(quick_home_cards.size(), 6, "Quick Match Home selector renders 6 direct-tap Team Cards")
-	assert_eq(quick_away_cards.size(), 6, "Quick Match Away selector renders 6 direct-tap Team Cards")
-	(tourn_cards[2] as Button).pressed.emit()
-	assert_eq(hud.tournament_team_picker.selected, 2, "Tapping a Team Card in the 3x2 grid updates selected team index")
+	assert_eq(tourn_cards.size(), 9, "Tournament tab renders 9 direct-tap Team Cards in 3x3 grid")
+	assert_eq(quick_home_cards.size(), 9, "Quick Match Home selector renders 9 direct-tap Team Cards")
+	assert_eq(quick_away_cards.size(), 9, "Quick Match Away selector renders 9 direct-tap Team Cards")
+	(tourn_cards[6] as Button).pressed.emit()
+	assert_eq(hud.tournament_team_picker.selected, 6, "Tapping a Team Card in the 3x3 grid updates selected team index")
 	hud._close_menu_layer()
 	assert_false(tc.blocked_by_menu, "Closing Main Menu unblocks TouchControls for gameplay")
 	assert_true(tc.visible, "TouchControls restores visibility when Main Menu closes")
@@ -254,8 +254,8 @@ func test_tier_2_goal_lock_golden_goal_and_color_clash() -> void:
 	m.tournament_save_path = TEMP_SAVE_PATH
 	_active_root().add_child(m)
 
-	# 1. All 6 teams loaded with distinct clash-free colors in every pairing
-	assert_eq(m.team_catalog.size(), 6, "All 6 teams from teams.json must load into team_catalog")
+	# 1. All 9 teams loaded with distinct clash-free colors in every pairing (81 matchups)
+	assert_eq(m.team_catalog.size(), 9, "All 9 teams from teams.json must load into team_catalog")
 	for i in range(m.team_catalog.size()):
 		for j in range(m.team_catalog.size()):
 			var mu := m._build_matchup(i, j, i == j)

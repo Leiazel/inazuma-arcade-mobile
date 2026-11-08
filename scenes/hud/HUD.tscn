@@ -54,7 +54,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
 theme_override_font_sizes/font_size = 12
-text = "RAIMON"
+text = "TRES LEONES"
 horizontal_alignment = 2
 
 [node name="Spacer1" type="Control" parent="TopCenterScoreboard/Margin/HBox"]
@@ -107,7 +107,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
 theme_override_font_sizes/font_size = 12
-text = "ROYAL"
+text = "FURIA ROJA"
 
 [node name="SkillBanner" type="Control" parent="."]
 custom_minimum_size = Vector2(340, 52)

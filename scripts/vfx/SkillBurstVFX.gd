@@ -17,6 +17,7 @@ var _speeds: Array[float] = []
 func _ready() -> void:
 	z_index = 5
 	_init_rays()
+	set_process(is_playing)
 
 func _init_rays() -> void:
 	if not _dirs.is_empty():
@@ -35,10 +36,12 @@ func play_burst(col: Color, scale_mult: float = 1.0, dur: float = 0.38) -> void:
 	elapsed = 0.0
 	is_playing = true
 	visible = true
+	set_process(true)
 	queue_redraw()
 
 func _process(delta: float) -> void:
 	if not visible or not is_playing:
+		set_process(false)
 		return
 	# Use unscaled delta approximation during hitstop so impact flash still animates crisply
 	var eff_delta: float = delta
@@ -47,6 +50,7 @@ func _process(delta: float) -> void:
 	elapsed += eff_delta
 	if elapsed >= duration:
 		is_playing = false
+		set_process(false)
 		if is_instance_valid(pool_ref) and pool_ref.has_method("release"):
 			pool_ref.call("release", self)
 		else:

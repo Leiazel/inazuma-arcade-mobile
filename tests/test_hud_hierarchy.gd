@@ -156,18 +156,18 @@ func test_tier_2_boundary_cases() -> void:
 	assert_almost_eq(banner.TOTAL_DURATION, 1.60, 0.001, "Total duration must be 1.60s")
 	
 	# 4. SkillBanner Trigger & Rapid Re-trigger
-	hud.display_skill_banner("AXEL BLAZE", "FIRE TORNADO", "FIRE")
+	hud.display_skill_banner("EL HURACÁN", "CAÑÓN DEL HURACÁN", "FIRE")
 	assert_true(banner.is_active, "Banner must be active after display_skill")
-	assert_eq(banner.current_player, "AXEL BLAZE", "Current player name matches")
-	assert_eq(banner.current_skill, "FIRE TORNADO", "Current skill name matches")
+	assert_eq(banner.current_player, "EL HURACÁN", "Current player name matches")
+	assert_eq(banner.current_skill, "CAÑÓN DEL HURACÁN", "Current skill name matches")
 	assert_eq(banner.current_element, "FIRE", "Current element matches")
 	assert_true(banner.visible, "Banner must become visible")
 	
 	# Rapid re-trigger should interrupt and reset cleanly
-	hud.display_skill_banner("MARK EVANS", "GOD HAND", "EARTH")
+	hud.display_skill_banner("EL GUARDIÁN", "MURALLA DEL TÁMESIS", "EARTH")
 	assert_true(banner.is_active, "Banner remains active after re-trigger")
-	assert_eq(banner.current_player, "MARK EVANS", "Updated to new player")
-	assert_eq(banner.current_skill, "GOD HAND", "Updated to new skill")
+	assert_eq(banner.current_player, "EL GUARDIÁN", "Updated to new player")
+	assert_eq(banner.current_skill, "MURALLA DEL TÁMESIS", "Updated to new skill")
 	assert_eq(banner.current_element, "EARTH", "Updated to EARTH element")
 	
 	# Reset banner
@@ -242,11 +242,11 @@ func test_tier_3_match_integration() -> void:
 	assert_eq(hud.away_score_label.text, "1", "HUD scoreboard reflects away score 1")
 	
 	# 6. Hissatsu Skill Trigger through MatchController
-	match_node.trigger_hissatsu_banner("JUDE SHARP", "ILLUSION BALL", "WOOD")
+	match_node.trigger_hissatsu_banner("EL ILUSIONISTA", "CROQUETA CÓSMICA", "WOOD")
 	var banner = hud.get_skill_banner()
 	assert_true(banner.is_active, "Banner is active after match trigger")
-	assert_eq(banner.current_player, "JUDE SHARP", "Player name matches Jude Sharp")
-	assert_eq(banner.current_skill, "ILLUSION BALL", "Skill name matches Illusion Ball")
+	assert_eq(banner.current_player, "EL ILUSIONISTA", "Player name matches El Ilusionista")
+	assert_eq(banner.current_skill, "CROQUETA CÓSMICA", "Skill name matches Croqueta Cósmica")
 	assert_eq(banner.current_element, "WOOD", "Element matches Wood")
 	
 	# Verify camera trauma shake triggered
