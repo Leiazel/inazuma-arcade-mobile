@@ -20,7 +20,16 @@ var is_completed: bool = false
 var materials_count: int = 0
 var particles_count: int = 0
 var _staging_container: Node2D = null
+var _active_warmup_vp: SubViewport = null
 var _saved_gameplay_state: Dictionary = {}
+
+func _exit_tree() -> void:
+	if is_instance_valid(_staging_container):
+		_staging_container.free()
+		_staging_container = null
+	if is_instance_valid(_active_warmup_vp):
+		_active_warmup_vp.free()
+		_active_warmup_vp = null
 
 ## Prepares and returns the off-screen SubViewport and staging container
 func setup_staging(mats: int = 0, particles: int = 0) -> Dictionary:
@@ -49,14 +58,17 @@ func run_warm_up_routine() -> void:
 	var vp = stage["viewport"] as SubViewport
 	var container = stage["container"] as Node2D
 	_staging_container = container
+	_active_warmup_vp = vp
 	add_child(vp)
 
 	# 1. Instantiate material test quads to warm up shaders
+	var placeholder_tex := PlaceholderTexture2D.new()
+	placeholder_tex.size = Vector2(16, 16)
 	for mat in materials_to_warm:
 		if mat == null:
 			continue
 		var sprite = Sprite2D.new()
-		sprite.texture = PlaceholderTexture2D.new()
+		sprite.texture = placeholder_tex
 		sprite.material = mat
 		container.add_child(sprite)
 
@@ -71,15 +83,21 @@ func run_warm_up_routine() -> void:
 		container.add_child(p_inst)
 
 	# 3. Wait 2 frames to force GPU pipeline state object (PSO) compilation
-	if is_inside_tree():
+	if is_inside_tree() and DisplayServer.get_name() != "headless":
 		await get_tree().process_frame
+		if not is_inside_tree():
+			return
 		await RenderingServer.frame_post_draw
+		if not is_inside_tree():
+			return
 
 	# 4. Clean up off-screen staging nodes
 	if is_instance_valid(container):
 		container.queue_free()
 	if is_instance_valid(vp):
 		vp.queue_free()
+	_staging_container = null
+	_active_warmup_vp = null
 
 	is_completed = true
 	emit_signal("warm_up_completed")

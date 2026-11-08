@@ -65,6 +65,39 @@
       "formation": ["arg_04", "arg_02", "arg_01", "arg_03"],
       "gk_id": "gk_arg",
       "description": "El Jefe Final 5v5: garra incansable, gambeta cósmica, mística campeona y poder de fuego letal."
+    },
+    "team_raimon": {
+      "id": "team_raimon",
+      "name": "Instituto Raimon",
+      "level": 4,
+      "color": "#F59E0B",
+      "secondary_color": "#1D4ED8",
+      "alt_color": "#1D4ED8",
+      "formation": ["raimon_04", "raimon_02", "raimon_03", "home_01"],
+      "gk_id": "home_gk",
+      "description": "Espíritu relámpago: velocidad huracanada atrás, visión fénix en el medio y el legendario Tornado de Fuego."
+    },
+    "team_royal": {
+      "id": "team_royal",
+      "name": "Academia Imperial",
+      "level": 5,
+      "color": "#10B981",
+      "secondary_color": "#7F1D1D",
+      "alt_color": "#F43F5E",
+      "formation": ["royal_04", "royal_03", "away_01", "royal_02"],
+      "gk_id": "away_gk",
+      "description": "Disciplina táctica absoluta: pases milimétricos, ilusiones ópticas y la letal artillería imperial."
+    },
+    "team_alianza": {
+      "id": "team_alianza",
+      "name": "Alianza Galáctica",
+      "level": 6,
+      "color": "#EC4899",
+      "secondary_color": "#0F172A",
+      "alt_color": "#22D3EE",
+      "formation": ["gal_03", "arg_05", "gal_02", "gal_01"],
+      "gk_id": "gal_gk",
+      "description": "Élite intergaláctica de velocidad sideral, regate diamantino y cañonazos meteóricos imparables."
     }
   }
 }

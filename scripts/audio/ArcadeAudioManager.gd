@@ -12,15 +12,41 @@ var music_enabled: bool = true
 var sfx_volume: float = 0.80
 var music_volume: float = 0.35
 
+static var _shared_pcm_cache: Dictionary = {}
+
 var _streams: Dictionary = {}
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_cursor: int = 0
 var _bgm_player: AudioStreamPlayer = null
+var _is_dummy_driver: bool = false
+
+static func clear_shared_cache() -> void:
+	_shared_pcm_cache.clear()
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_is_dummy_driver = (DisplayServer.get_name() == "headless")
 	_build_players()
 	_synthesize_library()
+
+func _exit_tree() -> void:
+	_stop_and_release_players()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		_stop_and_release_players()
+		_streams.clear()
+
+func _stop_and_release_players() -> void:
+	if is_instance_valid(_bgm_player):
+		if _bgm_player.playing:
+			_bgm_player.stop()
+		_bgm_player.stream = null
+	for p in _sfx_players:
+		if is_instance_valid(p):
+			if p.playing:
+				p.stop()
+			p.stream = null
 
 func _build_players() -> void:
 	if not _sfx_players.is_empty():
@@ -55,7 +81,7 @@ func set_sfx_enabled(enabled: bool) -> void:
 func set_music_enabled(enabled: bool) -> void:
 	music_enabled = enabled
 	_apply_volumes()
-	if music_enabled and is_instance_valid(_bgm_player) and _bgm_player.stream != null and not _bgm_player.playing:
+	if not _is_dummy_driver and music_enabled and is_instance_valid(_bgm_player) and _bgm_player.stream != null and not _bgm_player.playing:
 		_bgm_player.play()
 
 func set_sfx_volume(linear_vol: float) -> void:
@@ -79,11 +105,25 @@ func play_sfx(sfx_name: String, pitch_scale: float = 1.0) -> void:
 	var stream: AudioStreamWAV = _streams.get(sfx_name) as AudioStreamWAV
 	if stream == null or _sfx_players.is_empty():
 		return
-	var player: AudioStreamPlayer = _sfx_players[_sfx_cursor % _sfx_players.size()]
-	_sfx_cursor += 1
+	var player: AudioStreamPlayer = null
+	var pool_count: int = _sfx_players.size()
+	for offset in range(pool_count):
+		var candidate: AudioStreamPlayer = _sfx_players[(_sfx_cursor + offset) % pool_count]
+		if is_instance_valid(candidate) and not candidate.playing:
+			player = candidate
+			_sfx_cursor = (_sfx_cursor + offset + 1) % pool_count
+			break
+	if player == null:
+		player = _sfx_players[_sfx_cursor % pool_count]
+		_sfx_cursor = (_sfx_cursor + 1) % pool_count
+	if not is_instance_valid(player):
+		return
+	if player.playing:
+		player.stop()
 	player.stream = stream
 	player.pitch_scale = clampf(pitch_scale, 0.5, 2.0)
-	player.play()
+	if not _is_dummy_driver:
+		player.play()
 
 func start_music() -> void:
 	if _streams.is_empty():
@@ -93,7 +133,7 @@ func start_music() -> void:
 	if _bgm_player.stream == null:
 		_bgm_player.stream = _streams.get("bgm_match")
 	_apply_volumes()
-	if music_enabled and _bgm_player.stream != null and not _bgm_player.playing:
+	if not _is_dummy_driver and music_enabled and _bgm_player.stream != null and not _bgm_player.playing:
 		_bgm_player.play()
 
 func stop_music() -> void:
@@ -103,20 +143,24 @@ func stop_music() -> void:
 func _synthesize_library() -> void:
 	if not _streams.is_empty():
 		return
-	_streams["ui_click"] = _make_sweep(0.055, 620.0, 940.0, 0.35, 0.0, false)
-	_streams["pass"] = _make_sweep(0.085, 195.0, 340.0, 0.48, 0.15, false)
-	_streams["charge"] = _make_sweep(0.13, 280.0, 560.0, 0.30, 0.0, true)
-	_streams["shot"] = _make_sweep(0.17, 175.0, 52.0, 0.68, 0.38, false)
-	_streams["slide"] = _make_sweep(0.19, 140.0, 80.0, 0.18, 0.62, false)
-	_streams["steal"] = _make_two_tone(0.13, 523.25, 783.99, 0.42)
-	_streams["hissatsu_start"] = _make_sweep(0.28, 220.0, 920.0, 0.55, 0.08, true)
-	_streams["hissatsu_hit"] = _make_sweep(0.30, 260.0, 44.0, 0.78, 0.45, true)
-	_streams["gk_save"] = _make_two_tone(0.22, 392.0, 587.33, 0.58)
-	_streams["whistle_kickoff"] = _make_whistle([0.26])
-	_streams["whistle_golden"] = _make_whistle([0.16, 0.24])
-	_streams["whistle_end"] = _make_whistle([0.15, 0.15, 0.32])
-	_streams["goal"] = _make_fanfare()
-	_streams["bgm_match"] = _make_arcade_bgm_loop()
+	if _shared_pcm_cache.is_empty():
+		_shared_pcm_cache["ui_click"] = {"pcm": _make_sweep(0.055, 620.0, 940.0, 0.35, 0.0, false).data, "loop": false}
+		_shared_pcm_cache["pass"] = {"pcm": _make_sweep(0.085, 195.0, 340.0, 0.48, 0.15, false).data, "loop": false}
+		_shared_pcm_cache["charge"] = {"pcm": _make_sweep(0.13, 280.0, 560.0, 0.30, 0.0, true).data, "loop": false}
+		_shared_pcm_cache["shot"] = {"pcm": _make_sweep(0.17, 175.0, 52.0, 0.68, 0.38, false).data, "loop": false}
+		_shared_pcm_cache["slide"] = {"pcm": _make_sweep(0.19, 140.0, 80.0, 0.18, 0.62, false).data, "loop": false}
+		_shared_pcm_cache["steal"] = {"pcm": _make_two_tone(0.13, 523.25, 783.99, 0.42).data, "loop": false}
+		_shared_pcm_cache["hissatsu_start"] = {"pcm": _make_sweep(0.28, 220.0, 920.0, 0.55, 0.08, true).data, "loop": false}
+		_shared_pcm_cache["hissatsu_hit"] = {"pcm": _make_sweep(0.30, 260.0, 44.0, 0.78, 0.45, true).data, "loop": false}
+		_shared_pcm_cache["gk_save"] = {"pcm": _make_two_tone(0.22, 392.0, 587.33, 0.58).data, "loop": false}
+		_shared_pcm_cache["whistle_kickoff"] = {"pcm": _make_whistle([0.26]).data, "loop": false}
+		_shared_pcm_cache["whistle_golden"] = {"pcm": _make_whistle([0.16, 0.24]).data, "loop": false}
+		_shared_pcm_cache["whistle_end"] = {"pcm": _make_whistle([0.15, 0.15, 0.32]).data, "loop": false}
+		_shared_pcm_cache["goal"] = {"pcm": _make_fanfare().data, "loop": false}
+		_shared_pcm_cache["bgm_match"] = {"pcm": _make_arcade_bgm_loop().data, "loop": true}
+	for sfx_key in _shared_pcm_cache.keys():
+		var entry: Dictionary = _shared_pcm_cache[sfx_key]
+		_streams[sfx_key] = _wrap_wav(entry["pcm"] as PackedByteArray, bool(entry["loop"]))
 
 func _make_sweep(duration: float, f_start: float, f_end: float, tone_gain: float, noise_gain: float, square_ish: bool) -> AudioStreamWAV:
 	var count: int = maxi(1, int(duration * MIX_RATE))

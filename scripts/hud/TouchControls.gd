@@ -57,10 +57,28 @@ var _switch_pointer_id: int = -1
 var _slide_pointer_id: int = -1
 var _pause_pointer_id: int = -1
 var _field_pointer_id: int = -1
+var _pause_style_idle: StyleBoxFlat = null
+var _pause_style_down: StyleBoxFlat = null
+
+func _ensure_styles() -> void:
+	if _pause_style_idle == null:
+		_pause_style_idle = StyleBoxFlat.new()
+		_pause_style_idle.bg_color = COL_BEIGE_LIGHT
+		_pause_style_idle.border_color = COL_GOLD_BRIGHT
+		_pause_style_idle.set_border_width_all(2)
+		_pause_style_idle.set_corner_radius_all(10)
+	if _pause_style_down == null:
+		_pause_style_down = StyleBoxFlat.new()
+		_pause_style_down.bg_color = COL_RED_PRIMARY
+		_pause_style_down.border_color = COL_GOLD_BRIGHT
+		_pause_style_down.set_border_width_all(2)
+		_pause_style_down.set_corner_radius_all(10)
 
 func _ready() -> void:
+	_ensure_styles()
 	var is_mobile := OS.get_name() == "Android" or OS.has_feature("mobile") or DisplayServer.is_touchscreen_available()
 	set_touch_enabled(is_mobile and DisplayServer.get_name() != "headless")
+	set_process(false)
 
 func _process(delta: float) -> void:
 	if action_dragging:
@@ -68,7 +86,10 @@ func _process(delta: float) -> void:
 		queue_redraw()
 	elif _shot_hold_time > 0.0:
 		_shot_hold_time = 0.0
+		set_process(false)
 		queue_redraw()
+	else:
+		set_process(false)
 
 func set_touch_enabled(enabled: bool) -> void:
 	touch_enabled = enabled
@@ -91,6 +112,7 @@ func _reset_all_touch_states() -> void:
 		Input.action_release("action_shot")
 	move_dragging = false
 	action_dragging = false
+	set_process(false)
 	ability_button_down = false
 	pass_button_down = false
 	switch_button_down = false
@@ -177,6 +199,7 @@ func _gui_input(event: InputEvent) -> void:
 			_action_pointer_id = pid
 			action_dragging = true
 			_shot_hold_time = 0.0
+			set_process(true)
 			action_origin = act_center
 			action_vector = _clamped_vector(pointer - action_origin, ACTION_PAD_RADIUS)
 			if InputMap.has_action("action_shot"):
@@ -483,11 +506,8 @@ func _draw_circle_button(center: Vector2, radius: float, title_txt: String, sub_
 		draw_string(ThemeDB.fallback_font, center + Vector2(-r, 12.0), sub_txt, HORIZONTAL_ALIGNMENT_CENTER, r * 2.0, 9, sub_col)
 
 func _draw_pause_button(rect: Rect2, is_down: bool) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = COL_RED_PRIMARY if is_down else COL_BEIGE_LIGHT
-	style.border_color = COL_GOLD_BRIGHT
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(10)
+	_ensure_styles()
+	var style: StyleBoxFlat = _pause_style_down if is_down else _pause_style_idle
 	draw_style_box(style, rect)
 	var col := COL_WHITE if is_down else COL_RED_PRIMARY
 	draw_string(ThemeDB.fallback_font, rect.position + Vector2(0.0, rect.size.y * 0.68), "❚❚", HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, 16, col)

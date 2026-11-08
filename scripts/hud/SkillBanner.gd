@@ -136,6 +136,14 @@ func _build_ui_if_needed() -> void:
 	skill_label.add_theme_font_size_override("font_size", 14)
 	vbox.add_child(skill_label)
 
+func _exit_tree() -> void:
+	if _active_tween != null and _active_tween.is_valid():
+		_active_tween.kill()
+		_active_tween = null
+
+func preload_portrait(path: String) -> void:
+	_load_portrait_texture(path)
+
 func _load_portrait_texture(path: String) -> Texture2D:
 	if path.is_empty():
 		return null

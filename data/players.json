@@ -745,7 +745,7 @@
     "home_01": {
       "id": "home_01",
       "name": "Axel Blaze",
-      "team": "team_home",
+      "team": "team_raimon",
       "role": "FW",
       "stats": {
         "velocidad": 88,
@@ -768,7 +768,7 @@
     "home_gk": {
       "id": "home_gk",
       "name": "Mark Evans",
-      "team": "team_home",
+      "team": "team_raimon",
       "role": "GK",
       "stats": {
         "reflejos": 95,
@@ -792,7 +792,7 @@
     "away_01": {
       "id": "away_01",
       "name": "Jude Sharp",
-      "team": "team_away",
+      "team": "team_royal",
       "role": "MF",
       "stats": {
         "velocidad": 84,
@@ -815,7 +815,7 @@
     "away_gk": {
       "id": "away_gk",
       "name": "Joe King",
-      "team": "team_away",
+      "team": "team_royal",
       "role": "GK",
       "stats": {
         "reflejos": 92,
@@ -835,6 +835,237 @@
       "sheet": "res://assets/sprites/gk_star_aligned.png",
       "portrait": "res://assets/sprites/gk_star_portrait.png",
       "icon": "res://assets/sprites/gk_star_icon.png"
+    },
+    "raimon_02": {
+      "id": "raimon_02",
+      "name": "Erik Eagle",
+      "team": "team_raimon",
+      "role": "MF",
+      "stats": {
+        "velocidad": 86,
+        "control": 93,
+        "pase": 94,
+        "tiro": 83,
+        "defensa": 72
+      },
+      "ability": {
+        "name": "Espiral Fénix",
+        "type": "pass",
+        "cooldown": 8.0,
+        "description": "Envío envolvente con estela ígnea que habilita al delantero entre líneas."
+      },
+      "anims": "res://data/anims/vet_01.json",
+      "sheet": "res://assets/sprites/vet_01_aligned.png",
+      "portrait": "res://assets/sprites/vet_01_portrait.png",
+      "icon": "res://assets/sprites/vet_01_icon.png"
+    },
+    "raimon_03": {
+      "id": "raimon_03",
+      "name": "Shawn Frost",
+      "team": "team_raimon",
+      "role": "MF",
+      "stats": {
+        "velocidad": 91,
+        "control": 90,
+        "pase": 85,
+        "tiro": 92,
+        "defensa": 84
+      },
+      "ability": {
+        "name": "Ventisca Eterna",
+        "type": "shot",
+        "cooldown": 8.5,
+        "description": "Remate glacial giratorio que congela el aire rumbo a la escuadra."
+      },
+      "anims": "res://data/anims/vet_02.json",
+      "sheet": "res://assets/sprites/vet_02_aligned.png",
+      "portrait": "res://assets/sprites/vet_02_portrait.png",
+      "icon": "res://assets/sprites/vet_02_icon.png"
+    },
+    "raimon_04": {
+      "id": "raimon_04",
+      "name": "Nathan Swift",
+      "team": "team_raimon",
+      "role": "DF",
+      "stats": {
+        "velocidad": 93,
+        "control": 86,
+        "pase": 84,
+        "tiro": 72,
+        "defensa": 88
+      },
+      "ability": {
+        "name": "Entrada Huracán",
+        "type": "defense",
+        "cooldown": 7.5,
+        "description": "Ráfaga supersónica de viento que corta el avance rival y recupera la posesión."
+      },
+      "anims": "res://data/anims/bra_03.json",
+      "sheet": "res://assets/sprites/bra_03_aligned.png",
+      "portrait": "res://assets/sprites/bra_03_portrait.png",
+      "icon": "res://assets/sprites/bra_03_icon.png"
+    },
+    "royal_02": {
+      "id": "royal_02",
+      "name": "David Samford",
+      "team": "team_royal",
+      "role": "FW",
+      "stats": {
+        "velocidad": 88,
+        "control": 87,
+        "pase": 82,
+        "tiro": 95,
+        "defensa": 54
+      },
+      "ability": {
+        "name": "Pingüino Emperador Nº1",
+        "type": "shot",
+        "cooldown": 9.0,
+        "description": "Cañonazo imperial de energía carmesí con velocidad devastadora."
+      },
+      "anims": "res://data/anims/star_03.json",
+      "sheet": "res://assets/sprites/star_03_aligned.png",
+      "portrait": "res://assets/sprites/star_03_portrait.png",
+      "icon": "res://assets/sprites/star_03_icon.png"
+    },
+    "royal_03": {
+      "id": "royal_03",
+      "name": "Caleb Stonewall",
+      "team": "team_royal",
+      "role": "MF",
+      "stats": {
+        "velocidad": 86,
+        "control": 91,
+        "pase": 94,
+        "tiro": 85,
+        "defensa": 79
+      },
+      "ability": {
+        "name": "Jugada Maestra",
+        "type": "pass",
+        "cooldown": 8.0,
+        "description": "Pase táctico milimétrico de alta tensión que destroza la presión rival."
+      },
+      "anims": "res://data/anims/ita_01.json",
+      "sheet": "res://assets/sprites/ita_01_aligned.png",
+      "portrait": "res://assets/sprites/ita_01_portrait.png",
+      "icon": "res://assets/sprites/ita_01_icon.png"
+    },
+    "royal_04": {
+      "id": "royal_04",
+      "name": "Daniel Hatch",
+      "team": "team_royal",
+      "role": "DF",
+      "stats": {
+        "velocidad": 83,
+        "control": 80,
+        "pase": 79,
+        "tiro": 68,
+        "defensa": 93
+      },
+      "ability": {
+        "name": "Barrera Imperial",
+        "type": "defense",
+        "cooldown": 7.5,
+        "description": "Cierre implacable de disciplina férrea que desarma cualquier ataque."
+      },
+      "anims": "res://data/anims/ita_02.json",
+      "sheet": "res://assets/sprites/ita_02_aligned.png",
+      "portrait": "res://assets/sprites/ita_02_portrait.png",
+      "icon": "res://assets/sprites/ita_02_icon.png"
+    },
+    "gal_01": {
+      "id": "gal_01",
+      "name": "Xavier Foster",
+      "team": "team_alianza",
+      "role": "FW",
+      "stats": {
+        "velocidad": 92,
+        "control": 92,
+        "pase": 88,
+        "tiro": 97,
+        "defensa": 58
+      },
+      "ability": {
+        "name": "Cañón de Meteoritos",
+        "type": "shot",
+        "cooldown": 9.0,
+        "description": "Impacto estelar de potencia cósmica que perfora la red a velocidad sideral."
+      },
+      "anims": "res://data/anims/arg_01.json",
+      "sheet": "res://assets/sprites/arg_01_aligned.png",
+      "portrait": "res://assets/sprites/arg_01_portrait.png",
+      "icon": "res://assets/sprites/arg_01_icon.png"
+    },
+    "gal_02": {
+      "id": "gal_02",
+      "name": "Bryce Whitingale",
+      "team": "team_alianza",
+      "role": "MF",
+      "stats": {
+        "velocidad": 93,
+        "control": 94,
+        "pase": 89,
+        "tiro": 91,
+        "defensa": 60
+      },
+      "ability": {
+        "name": "Polvo de Diamantes",
+        "type": "dribble",
+        "cooldown": 8.0,
+        "description": "Desborde cristalino a velocidad supersónica con inmunidad al robo."
+      },
+      "anims": "res://data/anims/star_05.json",
+      "sheet": "res://assets/sprites/star_05_aligned.png",
+      "portrait": "res://assets/sprites/star_05_portrait.png",
+      "icon": "res://assets/sprites/star_05_icon.png"
+    },
+    "gal_03": {
+      "id": "gal_03",
+      "name": "Bellatrix",
+      "team": "team_alianza",
+      "role": "DF",
+      "stats": {
+        "velocidad": 89,
+        "control": 88,
+        "pase": 87,
+        "tiro": 82,
+        "defensa": 94
+      },
+      "ability": {
+        "name": "Órbita Gravitatoria",
+        "type": "defense",
+        "cooldown": 7.5,
+        "description": "Campo gravitacional defensivo que intercepta y arrebata el balón al instante."
+      },
+      "anims": "res://data/anims/star_04.json",
+      "sheet": "res://assets/sprites/star_04_aligned.png",
+      "portrait": "res://assets/sprites/star_04_portrait.png",
+      "icon": "res://assets/sprites/star_04_icon.png"
+    },
+    "gal_gk": {
+      "id": "gal_gk",
+      "name": "Darren LaChance",
+      "team": "team_alianza",
+      "role": "GK",
+      "stats": {
+        "reflejos": 94,
+        "velocidad": 82,
+        "control": 82,
+        "pase": 84,
+        "tiro": 50,
+        "defensa": 95
+      },
+      "ability": {
+        "name": "Mano Mágica Infinita",
+        "type": "gk_save",
+        "cooldown": 9.5,
+        "description": "Proyección astral colosal que neutraliza hasta los superdisparos más feroces."
+      },
+      "anims": "res://data/anims/gk_arg.json",
+      "sheet": "res://assets/sprites/gk_arg_aligned.png",
+      "portrait": "res://assets/sprites/gk_arg_portrait.png",
+      "icon": "res://assets/sprites/gk_arg_icon.png"
     }
   }
 }

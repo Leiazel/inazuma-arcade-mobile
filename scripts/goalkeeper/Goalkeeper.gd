@@ -41,12 +41,14 @@ var ai_difficulty: float = 1.0
 var aurora_time: float = 0.0
 
 var ball: Ball = null
+var match_players_ref: Array = []
 var dive_timer: float = 0.0
 var hold_timer: float = 0.0
 var pickup_lock_timer: float = 0.0
 var has_ball: bool = false
 var is_user_controlled: bool = false
 var facing_direction: Vector2 = Vector2.LEFT
+var _overlay_dirty_active: bool = false
 
 @onready var anim_sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 @onready var shadow: Sprite2D = get_node_or_null("Shadow")
@@ -54,6 +56,13 @@ var facing_direction: Vector2 = Vector2.LEFT
 
 signal shot_saved(gk: Goalkeeper)
 signal gk_ability_activated(gk: Goalkeeper, ability_name: String, portrait_path: String)
+
+func _init() -> void:
+	Player.register_actor_instance()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		Player.unregister_actor_instance()
 
 func _ready() -> void:
 	add_to_group("players")
@@ -64,6 +73,18 @@ func _ready() -> void:
 	safe_margin = 0.05
 	_ensure_base_indicator()
 	load_goalkeeper(player_id)
+
+func _get_match_players() -> Array:
+	if not match_players_ref.is_empty():
+		return match_players_ref
+	var tree := get_tree()
+	return tree.get_nodes_in_group("players") if tree != null else []
+
+func _refresh_overlay_redraw() -> void:
+	var active := ability_cooldown > 0.0 or ability_active_timer > 0.0
+	if active or _overlay_dirty_active:
+		_overlay_dirty_active = active
+		queue_redraw()
 
 func _ensure_base_indicator() -> void:
 	if not is_instance_valid(base_indicator):
@@ -89,26 +110,22 @@ func set_team_indicator_color(col: Color) -> void:
 func reduce_ability_cooldown(amount: float) -> void:
 	if ability_cooldown > 0.0:
 		ability_cooldown = maxf(0.0, ability_cooldown - amount)
-		queue_redraw()
+		_refresh_overlay_redraw()
 
 func load_goalkeeper(p_id: String) -> void:
 	player_id = p_id
-	var file = FileAccess.open("res://data/players.json", FileAccess.READ)
-	if not file:
-		return
-
-	var parsed = JSON.parse_string(file.get_as_text())
-	if not parsed or not parsed.has("players"):
+	var players_db := Player.get_cached_players_db()
+	if players_db.is_empty():
 		return
 
 	var target_id := player_id
-	if not parsed["players"].has(target_id):
+	if not players_db.has(target_id):
 		target_id = "gk_bra" if team_id == "team_user" else "gk_star"
 
-	if not parsed["players"].has(target_id):
+	if not players_db.has(target_id):
 		return
 
-	var p_data: Dictionary = parsed["players"][target_id]
+	var p_data: Dictionary = players_db[target_id]
 	player_name = p_data.get("name", "Arquero")
 	portrait_path = str(p_data.get("portrait", "res://assets/sprites/" + target_id + "_portrait.png"))
 	icon_path = str(p_data.get("icon", "res://assets/sprites/" + target_id + "_icon.png"))
@@ -129,7 +146,8 @@ func load_goalkeeper(p_id: String) -> void:
 	ability_active_timer = 0.0
 	dive_using_hissatsu = false
 	_build_sprite_frames(p_data, target_id)
-	queue_redraw()
+	_overlay_dirty_active = true
+	_refresh_overlay_redraw()
 
 func _build_sprite_frames(p_data: Dictionary, resolved_id: String) -> void:
 	if not is_instance_valid(anim_sprite):
@@ -142,41 +160,9 @@ func _build_sprite_frames(p_data: Dictionary, resolved_id: String) -> void:
 	var anim_json_path: String = p_data.get("anims", "res://data/anims/" + resolved_id + ".json")
 	var sheet_path: String = p_data.get("sheet", "res://assets/sprites/" + resolved_id + "_aligned.png")
 
-	if not FileAccess.file_exists(anim_json_path):
+	var sf := Player.get_or_build_sprite_frames(anim_json_path, sheet_path, "res://assets/sprites/gk_bra_aligned.png")
+	if sf == null:
 		return
-
-	var a_file = FileAccess.open(anim_json_path, FileAccess.READ)
-	var a_data = JSON.parse_string(a_file.get_as_text())
-	var sheet_texture: Texture2D = null
-	if ResourceLoader.exists(sheet_path):
-		sheet_texture = load(sheet_path) as Texture2D
-	elif FileAccess.file_exists(sheet_path):
-		var img := Image.new()
-		if img.load(ProjectSettings.globalize_path(sheet_path)) == OK:
-			sheet_texture = ImageTexture.create_from_image(img)
-	if not sheet_texture:
-		sheet_texture = load(sheet_path) as Texture2D
-	if not sheet_texture:
-		sheet_texture = load("res://assets/sprites/gk_bra_aligned.png") as Texture2D
-	if not sheet_texture:
-		return
-
-	var sf = SpriteFrames.new()
-	for existing in sf.get_animation_names():
-		sf.remove_animation(existing)
-
-	for anim_name in a_data["animations"].keys():
-		var anim_info = a_data["animations"][anim_name]
-		sf.add_animation(anim_name)
-		sf.set_animation_speed(anim_name, float(anim_info.get("fps", 8)))
-		sf.set_animation_loop(anim_name, bool(anim_info.get("loop", true)))
-
-		for f in anim_info["frames"]:
-			var rect_info = f["rect"]
-			var atlas = AtlasTexture.new()
-			atlas.atlas = sheet_texture
-			atlas.region = Rect2(rect_info["x"], rect_info["y"], rect_info["w"], rect_info["h"])
-			sf.add_frame(anim_name, atlas)
 
 	anim_sprite.sprite_frames = sf
 	anim_sprite.play("idle_down")
@@ -192,10 +178,9 @@ func _physics_process(delta: float) -> void:
 		pickup_lock_timer -= delta
 	if ability_cooldown > 0.0:
 		ability_cooldown = maxf(0.0, ability_cooldown - delta)
-		queue_redraw()
 	if ability_active_timer > 0.0:
 		ability_active_timer = maxf(0.0, ability_active_timer - delta)
-		queue_redraw()
+	_refresh_overlay_redraw()
 
 	if not is_instance_valid(ball):
 		var balls = get_tree().get_nodes_in_group("ball") if get_tree() != null else []
@@ -367,7 +352,8 @@ func _clear_ball() -> void:
 
 	var best_mate: Player = null
 	var best_score: float = -9999.0
-	for p in get_tree().get_nodes_in_group("players"):
+	var players_list := _get_match_players()
+	for p in players_list:
 		if p != self and p is Player and p.team_id == self.team_id:
 			var dist = global_position.distance_to(p.global_position)
 			var score = -dist * 0.35 + (120.0 if p.role == "DF" else (90.0 if p.role == "MF" else 20.0))
@@ -380,7 +366,7 @@ func _clear_ball() -> void:
 		ball.pass_to(best_mate, 780.0, self)
 		ball.kick_cooldown = 0.45
 		if team_id == "team_user" and not best_mate.is_ai:
-			for p in get_tree().get_nodes_in_group("players"):
+			for p in players_list:
 				if p is Player and p.team_id == "team_user":
 					p.set_user_controlled(p == best_mate)
 	else:

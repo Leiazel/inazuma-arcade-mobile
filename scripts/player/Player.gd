@@ -9,8 +9,16 @@ const BASE_SPRITE_SCALE := Vector2(0.78, 0.78)
 const BASE_SPRITE_OFFSET := Vector2(0, -42)
 const PASS_SHOT_HOLD_THRESHOLD: float = 0.26 # seconds (<0.26s = Pass, >=0.26s = Power Shot)
 const HISSATSU_STARTUP_TIME: float = 0.20
+const KitColorSwapShader: Shader = preload("res://shaders/kit_color_swap.gdshader")
 
 static var _extra_inputs_registered: bool = false
+static var _players_db_cache: Dictionary = {}
+static var _players_db_loaded: bool = false
+static var _roster_fallback_cache: Array = []
+static var _roster_fallback_loaded: bool = false
+static var _anim_json_cache: Dictionary = {}
+static var _sprite_frames_pool: Dictionary = {}
+static var _live_actor_count: int = 0
 
 @export_group("Identity")
 @export var player_id: String = "bra_01"
@@ -58,11 +66,16 @@ var kick_anim_timer: float = 0.0
 
 var has_ball: bool = false
 var current_ball: CharacterBody2D = null
+var match_players_ref: Array = []
+var match_gks_ref: Array = []
 
 # Passing and shooting
 var pass_press_time: float = 0.0
 var is_charging_action: bool = false
 var _shot_rearm_required: bool = false
+var _prev_action_pressed: Dictionary = {}
+var _consumed_action_frame: Dictionary = {}
+var _overlay_dirty_active: bool = false
 var current_pass_target: Player = null
 var is_targeted_for_pass: bool = false
 
@@ -114,6 +127,88 @@ signal slide_tackle_executed(player: Player, success: bool)
 signal ability_activated(player: Player, ability_name: String, ability_type: String)
 signal ability_impact(player: Player, ability_name: String, ability_type: String, hit_connected: bool)
 
+static func register_actor_instance() -> void:
+	_live_actor_count += 1
+
+static func unregister_actor_instance() -> void:
+	_live_actor_count = maxi(0, _live_actor_count - 1)
+	if _live_actor_count == 0:
+		_sprite_frames_pool.clear()
+
+static func get_cached_players_db() -> Dictionary:
+	if not _players_db_loaded:
+		_players_db_loaded = true
+		if FileAccess.file_exists("res://data/players.json"):
+			var file := FileAccess.open("res://data/players.json", FileAccess.READ)
+			if file:
+				var parsed = JSON.parse_string(file.get_as_text())
+				if parsed is Dictionary and parsed.has("players") and parsed["players"] is Dictionary:
+					_players_db_cache = parsed["players"]
+	return _players_db_cache
+
+static func get_or_build_sprite_frames(anim_json_path: String, sheet_path: String, fallback_sheet_path: String) -> SpriteFrames:
+	var cache_key := anim_json_path + "|" + sheet_path
+	if _sprite_frames_pool.has(cache_key):
+		return _sprite_frames_pool[cache_key] as SpriteFrames
+
+	var a_data: Dictionary = {}
+	if _anim_json_cache.has(anim_json_path):
+		a_data = _anim_json_cache[anim_json_path]
+	else:
+		if not FileAccess.file_exists(anim_json_path):
+			return null
+		var a_file := FileAccess.open(anim_json_path, FileAccess.READ)
+		if not a_file:
+			return null
+		var parsed_anim = JSON.parse_string(a_file.get_as_text())
+		if not (parsed_anim is Dictionary) or not parsed_anim.has("animations"):
+			return null
+		a_data = parsed_anim
+		_anim_json_cache[anim_json_path] = a_data
+
+	var sheet_texture: Texture2D = null
+	if ResourceLoader.exists(sheet_path):
+		sheet_texture = load(sheet_path) as Texture2D
+	elif FileAccess.file_exists(sheet_path):
+		var img := Image.new()
+		if img.load(ProjectSettings.globalize_path(sheet_path)) == OK:
+			sheet_texture = ImageTexture.create_from_image(img)
+	if not sheet_texture:
+		sheet_texture = load(sheet_path) as Texture2D
+	if not sheet_texture and not fallback_sheet_path.is_empty():
+		sheet_texture = load(fallback_sheet_path) as Texture2D
+	if not sheet_texture:
+		return null
+
+	var sf := SpriteFrames.new()
+	for existing_anim in sf.get_animation_names():
+		sf.remove_animation(existing_anim)
+
+	var anims_dict: Dictionary = a_data["animations"]
+	for anim_name in anims_dict.keys():
+		var anim_info: Dictionary = anims_dict[anim_name]
+		sf.add_animation(anim_name)
+		sf.set_animation_speed(anim_name, float(anim_info.get("fps", 8)))
+		sf.set_animation_loop(anim_name, bool(anim_info.get("loop", true)))
+
+		for f in anim_info["frames"]:
+			var rect_info: Dictionary = f["rect"]
+			var atlas := AtlasTexture.new()
+			atlas.atlas = sheet_texture
+			atlas.region = Rect2(rect_info["x"], rect_info["y"], rect_info["w"], rect_info["h"])
+			sf.add_frame(anim_name, atlas)
+
+	if _live_actor_count > 0:
+		_sprite_frames_pool[cache_key] = sf
+	return sf
+
+func _init() -> void:
+	register_actor_instance()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		unregister_actor_instance()
+
 func _ready() -> void:
 	add_to_group("players")
 	collision_layer = 1
@@ -124,6 +219,34 @@ func _ready() -> void:
 	_ensure_extra_inputs()
 	_ensure_base_indicator()
 	load_player(player_id)
+
+func _get_match_players() -> Array:
+	if not match_players_ref.is_empty():
+		return match_players_ref
+	var tree := get_tree()
+	return tree.get_nodes_in_group("players") if tree != null else []
+
+func _get_match_goalkeepers() -> Array:
+	if not match_gks_ref.is_empty():
+		return match_gks_ref
+	var tree := get_tree()
+	return tree.get_nodes_in_group("goalkeepers") if tree != null else []
+
+func _needs_overlay_draw() -> bool:
+	return (
+		ability_cooldown > 0.0
+		or _hissatsu_pending
+		or ability_active_timer > 0.0
+		or is_sliding
+		or slide_recovery_timer > 0.0
+		or (is_charging_action and pass_press_time > 0.04)
+	)
+
+func _refresh_overlay_redraw() -> void:
+	var active := _needs_overlay_draw()
+	if active or _overlay_dirty_active:
+		_overlay_dirty_active = active
+		queue_redraw()
 
 func _ensure_base_indicator() -> void:
 	if not is_instance_valid(base_indicator):
@@ -146,12 +269,10 @@ func apply_kit(kit: KitData) -> void:
 		anim_sprite = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
 	if is_instance_valid(anim_sprite):
 		var mat = anim_sprite.material as ShaderMaterial
-		if mat == null:
-			var shader_res = load("res://shaders/kit_color_swap.gdshader") as Shader
-			if shader_res:
-				mat = ShaderMaterial.new()
-				mat.shader = shader_res
-				anim_sprite.material = mat
+		if mat == null and KitColorSwapShader != null:
+			mat = ShaderMaterial.new()
+			mat.shader = KitColorSwapShader
+			anim_sprite.material = mat
 		if mat:
 			kit.apply_to_material(mat)
 
@@ -162,7 +283,7 @@ func set_kit_data(kit: KitData) -> void:
 func reduce_ability_cooldown(amount: float) -> void:
 	if ability_cooldown > 0.0:
 		ability_cooldown = maxf(0.0, ability_cooldown - amount)
-		queue_redraw()
+		_refresh_overlay_redraw()
 
 static func _bind_key(action: String, physical_kc: Key) -> void:
 	var ev := InputEventKey.new()
@@ -244,47 +365,44 @@ func load_player(p_id: String) -> void:
 	player_id = p_id
 	var p_data: Dictionary = {}
 
-	# 1. Check data/players.json
-	if FileAccess.file_exists("res://data/players.json"):
-		var file = FileAccess.open("res://data/players.json", FileAccess.READ)
-		if file:
-			var parsed = JSON.parse_string(file.get_as_text())
-			if parsed and parsed.has("players") and parsed["players"].has(player_id):
-				p_data = parsed["players"][player_id]
+	# 1. Check cached data/players.json
+	var players_db := get_cached_players_db()
+	if players_db.has(player_id):
+		p_data = players_db[player_id]
 
 	# 2. Check players_roster.json if not found
-	if p_data.is_empty() and FileAccess.file_exists("res://players_roster.json"):
-		var file_r = FileAccess.open("res://players_roster.json", FileAccess.READ)
-		if file_r:
-			var parsed_r = JSON.parse_string(file_r.get_as_text())
-			if parsed_r and parsed_r.has("players") and parsed_r["players"] is Array:
-				for cand in parsed_r["players"]:
-					if cand.get("id") == player_id:
-						p_data = {
-							"name": cand.get("nombre", "Jugador"),
-							"role": cand.get("posicion", "FW"),
-							"stats": {
-								"velocidad": cand.get("estadisticas", {}).get("base", {}).get("rapidez", 80),
-								"control": cand.get("estadisticas", {}).get("base", {}).get("control", 80),
-								"pase": cand.get("estadisticas", {}).get("base", {}).get("control", 80),
-								"tiro": cand.get("estadisticas", {}).get("base", {}).get("tiro", 80),
-								"defensa": cand.get("estadisticas", {}).get("base", {}).get("defensa", 80)
-							}
-						}
-						break
+	if p_data.is_empty():
+		if not _roster_fallback_loaded:
+			_roster_fallback_loaded = true
+			if FileAccess.file_exists("res://players_roster.json"):
+				var file_r := FileAccess.open("res://players_roster.json", FileAccess.READ)
+				if file_r:
+					var parsed_r = JSON.parse_string(file_r.get_as_text())
+					if parsed_r is Dictionary and parsed_r.has("players") and parsed_r["players"] is Array:
+						_roster_fallback_cache = parsed_r["players"]
+		for cand in _roster_fallback_cache:
+			if cand.get("id") == player_id:
+				p_data = {
+					"name": cand.get("nombre", "Jugador"),
+					"role": cand.get("posicion", "FW"),
+					"stats": {
+						"velocidad": cand.get("estadisticas", {}).get("base", {}).get("rapidez", 80),
+						"control": cand.get("estadisticas", {}).get("base", {}).get("control", 80),
+						"pase": cand.get("estadisticas", {}).get("base", {}).get("control", 80),
+						"tiro": cand.get("estadisticas", {}).get("base", {}).get("tiro", 80),
+						"defensa": cand.get("estadisticas", {}).get("base", {}).get("defensa", 80)
+					}
+				}
+				break
 
 	# 3. Fallback to default player if still not found
 	if p_data.is_empty():
 		var is_gk: bool = player_id.contains("gk") or role == "GK"
 		var is_away_id: bool = player_id.contains("away") or player_id.contains("opp") or player_id.contains("rival") or team_id == "team_opp" or team_id == "team_away"
 		var fallback_id: String = ("gk_star" if is_away_id else "gk_bra") if is_gk else ("star_01" if is_away_id else "bra_01")
-		if FileAccess.file_exists("res://data/players.json"):
-			var file_fb = FileAccess.open("res://data/players.json", FileAccess.READ)
-			if file_fb:
-				var parsed_fb = JSON.parse_string(file_fb.get_as_text())
-				if parsed_fb and parsed_fb.has("players") and parsed_fb["players"].has(fallback_id):
-					p_data = parsed_fb["players"][fallback_id]
-					player_id = fallback_id
+		if players_db.has(fallback_id):
+			p_data = players_db[fallback_id]
+			player_id = fallback_id
 
 	if not p_data.is_empty():
 		player_name = p_data.get("name", "Jugador")
@@ -313,7 +431,8 @@ func load_player(p_id: String) -> void:
 	ability_active_timer = 0.0
 	_hissatsu_pending = false
 	hissatsu_windup_timer = 0.0
-	queue_redraw()
+	_overlay_dirty_active = true
+	_refresh_overlay_redraw()
 
 func _build_sprite_frames(p_data: Dictionary) -> void:
 	if not is_instance_valid(anim_sprite):
@@ -326,52 +445,15 @@ func _build_sprite_frames(p_data: Dictionary) -> void:
 	var anim_json_path: String = p_data.get("anims", "res://data/anims/" + player_id + ".json")
 	var sheet_path: String = p_data.get("sheet", "res://assets/sprites/" + player_id + "_aligned.png")
 
-	if not FileAccess.file_exists(anim_json_path):
+	if not _anim_json_cache.has(anim_json_path) and not FileAccess.file_exists(anim_json_path):
 		var is_gk: bool = player_id.contains("gk") or role == "GK"
 		var fb_prefix: String = "gk_bra" if is_gk else "bra_01"
 		anim_json_path = "res://data/anims/" + fb_prefix + ".json"
 		sheet_path = "res://assets/sprites/" + fb_prefix + "_aligned.png"
 
-	if not FileAccess.file_exists(anim_json_path):
+	var sf := get_or_build_sprite_frames(anim_json_path, sheet_path, "res://assets/sprites/bra_01_aligned.png")
+	if sf == null:
 		return
-
-	var a_file = FileAccess.open(anim_json_path, FileAccess.READ)
-	if not a_file:
-		return
-	var a_data = JSON.parse_string(a_file.get_as_text())
-	if not a_data or not a_data.has("animations"):
-		return
-
-	var sheet_texture: Texture2D = null
-	if ResourceLoader.exists(sheet_path):
-		sheet_texture = load(sheet_path) as Texture2D
-	elif FileAccess.file_exists(sheet_path):
-		var img := Image.new()
-		if img.load(ProjectSettings.globalize_path(sheet_path)) == OK:
-			sheet_texture = ImageTexture.create_from_image(img)
-	if not sheet_texture:
-		sheet_texture = load(sheet_path) as Texture2D
-	if not sheet_texture:
-		sheet_texture = load("res://assets/sprites/bra_01_aligned.png") as Texture2D
-	if not sheet_texture:
-		return
-
-	var sf = SpriteFrames.new()
-	for existing_anim in sf.get_animation_names():
-		sf.remove_animation(existing_anim)
-
-	for anim_name in a_data["animations"].keys():
-		var anim_info = a_data["animations"][anim_name]
-		sf.add_animation(anim_name)
-		sf.set_animation_speed(anim_name, float(anim_info.get("fps", 8)))
-		sf.set_animation_loop(anim_name, bool(anim_info.get("loop", true)))
-
-		for f in anim_info["frames"]:
-			var rect_info = f["rect"]
-			var atlas = AtlasTexture.new()
-			atlas.atlas = sheet_texture
-			atlas.region = Rect2(rect_info["x"], rect_info["y"], rect_info["w"], rect_info["h"])
-			sf.add_frame(anim_name, atlas)
 
 	anim_sprite.sprite_frames = sf
 	if sf.has_animation("idle_down"):
@@ -391,10 +473,12 @@ func set_user_controlled(controlled: bool) -> void:
 		is_charging_action = false
 		pass_press_time = 0.0
 		_set_target_receiver(null)
+	else:
+		_shot_rearm_required = Input.is_action_pressed("action_shot") or Input.is_action_pressed("action_primary")
 	_ensure_base_indicator()
 	if is_instance_valid(base_indicator):
 		base_indicator.set_selection_state(is_user_controlled, is_targeted_for_pass)
-	queue_redraw()
+	_refresh_overlay_redraw()
 
 func _is_gk_holding_ball() -> bool:
 	if not is_instance_valid(current_ball):
@@ -408,9 +492,11 @@ func _physics_process(delta: float) -> void:
 	aurora_time += delta
 
 	if not is_instance_valid(current_ball):
-		var balls = get_tree().get_nodes_in_group("ball")
-		if not balls.is_empty():
-			current_ball = balls[0] as CharacterBody2D
+		var tree := get_tree()
+		if tree != null:
+			var balls := tree.get_nodes_in_group("ball")
+			if not balls.is_empty():
+				current_ball = balls[0] as CharacterBody2D
 
 	if tackle_cooldown > 0.0:
 		tackle_cooldown -= delta
@@ -423,9 +509,9 @@ func _physics_process(delta: float) -> void:
 	if slide_cooldown > 0.0:
 		slide_cooldown -= delta
 	if ability_cooldown > 0.0:
-		ability_cooldown -= delta
+		ability_cooldown = maxf(0.0, ability_cooldown - delta)
 	if ability_active_timer > 0.0:
-		ability_active_timer -= delta
+		ability_active_timer = maxf(0.0, ability_active_timer - delta)
 
 	# Process Hissatsu STARTUP -> ACTIVE phase completion
 	if _hissatsu_pending:
@@ -436,7 +522,7 @@ func _physics_process(delta: float) -> void:
 		if hissatsu_windup_timer <= 0.0:
 			_hissatsu_pending = false
 			_execute_hissatsu_payload()
-		queue_redraw()
+		_refresh_overlay_redraw()
 		return
 
 	if is_kicking:
@@ -448,12 +534,12 @@ func _physics_process(delta: float) -> void:
 	if is_sliding:
 		_process_sliding(delta)
 		_clamp_inside_field()
-		queue_redraw()
+		_refresh_overlay_redraw()
 		return
 	elif slide_recovery_timer > 0.0:
 		_process_slide_recovery(delta)
 		_clamp_inside_field()
-		queue_redraw()
+		_refresh_overlay_redraw()
 		return
 
 	# Proximity tackle check
@@ -469,7 +555,7 @@ func _physics_process(delta: float) -> void:
 	_clamp_inside_field()
 
 	_update_animation()
-	queue_redraw()
+	_refresh_overlay_redraw()
 
 # ==============================================================================
 # SLIDE TACKLE MECHANICS
@@ -635,7 +721,7 @@ func _activate_special_ability() -> void:
 					facing_direction = diff.normalized()
 
 	emit_signal("ability_activated", self, ability_name, ability_type)
-	queue_redraw()
+	_refresh_overlay_redraw()
 
 func _execute_hissatsu_payload() -> void:
 	var connected: bool = false
@@ -650,8 +736,8 @@ func _execute_hissatsu_payload() -> void:
 					anim_sprite.play("kick")
 
 				var aim_y: float = randf_range(-78.0, 78.0)
-				for gk in get_tree().get_nodes_in_group("goalkeepers"):
-					if gk.get("team_id") != self.team_id:
+				for gk in _get_match_goalkeepers():
+					if is_instance_valid(gk) and gk.get("team_id") != self.team_id:
 						aim_y = -82.0 if gk.global_position.y >= 0.0 else 82.0
 						break
 
@@ -672,12 +758,11 @@ func _execute_hissatsu_payload() -> void:
 
 		"dribble":
 			ability_active_timer = 2.6
-			for p in get_tree().get_nodes_in_group("players"):
+			for p in _get_match_players():
 				if p is Player and p.team_id != self.team_id:
 					var opp := p as Player
 					var in_cone := SkillStateMachine.is_target_in_action_sector(global_position, facing_direction, opp.global_position, 130.0, 75.0)
-					var d := global_position.distance_to(opp.global_position)
-					if in_cone or d < 96.0:
+					if in_cone or global_position.distance_squared_to(opp.global_position) < 9216.0:
 						var push_dir := (opp.global_position - global_position).normalized()
 						opp.stumble(push_dir, 0.78)
 						connected = true
@@ -723,19 +808,19 @@ func _execute_hissatsu_payload() -> void:
 					var carrier = current_ball.get("carrier") as Player
 					if is_instance_valid(carrier) and carrier.team_id != self.team_id:
 						var in_sector := SkillStateMachine.is_target_in_action_sector(global_position, facing_direction, carrier.global_position, 145.0, 70.0)
-						if in_sector or global_position.distance_to(carrier.global_position) <= 125.0:
+						if in_sector or global_position.distance_squared_to(carrier.global_position) <= 15625.0:
 							var push_away = (carrier.global_position - global_position).normalized()
 							carrier.stumble(push_away, 0.90)
 							current_ball.call("take_possession", self)
 							emit_signal("ball_stolen", self, carrier)
 							connected = true
 				elif ball_state != null and int(ball_state) == 0:
-					if global_position.distance_to(current_ball.global_position) <= 125.0:
+					if global_position.distance_squared_to(current_ball.global_position) <= 15625.0:
 						current_ball.call("take_possession", self)
 						connected = true
 
 	emit_signal("ability_impact", self, ability_name, ability_type, connected)
-	queue_redraw()
+	_refresh_overlay_redraw()
 
 # ==============================================================================
 # SOFT COLLISION AND NORMAL TACKLE
@@ -744,26 +829,25 @@ func _apply_soft_player_collisions(delta: float) -> void:
 	var push_vec := Vector2.ZERO
 	var min_dist: float = 28.0
 	var gk_holding := _is_gk_holding_ball()
+	var gk_carrier: Object = current_ball.get("carrier") if (gk_holding and is_instance_valid(current_ball)) else null
 
-	for node in get_tree().get_nodes_in_group("players"):
+	for node in _get_match_players():
 		if node == self or not is_instance_valid(node):
 			continue
 		var other := node as Node2D
 		if not other:
 			continue
 
-		var eff_min_dist := min_dist
-		if gk_holding and is_instance_valid(current_ball) and other == current_ball.get("carrier"):
-			eff_min_dist = 115.0
-
+		var eff_min_dist := 115.0 if (gk_holding and other == gk_carrier) else min_dist
 		var diff := global_position - other.global_position
-		var dist := diff.length()
-		if dist < eff_min_dist:
-			var dir := diff.normalized() if dist > 0.01 else Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)).normalized()
+		var dist_sq := diff.length_squared()
+		if dist_sq < eff_min_dist * eff_min_dist:
+			var dist := sqrt(dist_sq)
+			var dir := (diff / dist) if dist > 0.01 else Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)).normalized()
 			var overlap := eff_min_dist - dist
-			push_vec += dir * overlap * 16.0
+			push_vec += dir * (overlap * 16.0)
 
-	if push_vec.length() > 0.01:
+	if push_vec.length_squared() > 0.0001:
 		global_position += push_vec * delta
 
 func _clamp_inside_field() -> void:
@@ -792,8 +876,7 @@ func _check_tackle_attempt() -> void:
 	if carrier._hissatsu_pending or (carrier.ability_active_timer > 0.0 and carrier.ability_type in ["dribble", "defense"]):
 		return
 
-	var dist = global_position.distance_to(carrier.global_position)
-	if dist <= 34.0:
+	if global_position.distance_squared_to(carrier.global_position) <= 1156.0: # 34^2
 		tackle_cooldown = 0.75
 		_execute_tackle(carrier)
 
@@ -837,6 +920,21 @@ func _get_base_speed() -> float:
 		speed *= 1.38
 	return speed
 
+func _poll_action_edge(act: String) -> bool:
+	var pressed_now: bool = Input.is_action_pressed(act)
+	var was_pressed: bool = bool(_prev_action_pressed.get(act, false))
+	_prev_action_pressed[act] = pressed_now
+	var cur_frame: int = Engine.get_process_frames()
+	if pressed_now and not was_pressed:
+		_consumed_action_frame[act] = cur_frame
+		return true
+	if not pressed_now and not was_pressed and Input.is_action_just_pressed(act):
+		var last_consumed: int = int(_consumed_action_frame.get(act, -1))
+		if cur_frame > last_consumed:
+			_consumed_action_frame[act] = cur_frame
+			return true
+	return false
+
 func _process_user_controlled(delta: float) -> void:
 	if has_ball and is_instance_valid(current_ball):
 		var target = _find_best_pass_target()
@@ -846,16 +944,18 @@ func _process_user_controlled(delta: float) -> void:
 		pass_press_time = 0.0
 		_set_target_receiver(null)
 
-	var secondary_pressed := Input.is_action_just_pressed("action_secondary")
-	var primary_just_pressed := Input.is_action_just_pressed("action_primary")
-	var shot_just_pressed := Input.is_action_just_pressed("action_shot")
-	var slide_just_pressed := Input.is_action_just_pressed("action_slide")
-	var pass_pressed := Input.is_action_just_pressed("action_pass")
+	var secondary_pressed := _poll_action_edge("action_secondary")
+	var switch_just_pressed := _poll_action_edge("switch_player")
+	var ability_just_pressed := _poll_action_edge("action_ability")
+	var primary_just_pressed := _poll_action_edge("action_primary")
+	var shot_just_pressed := _poll_action_edge("action_shot")
+	var slide_just_pressed := _poll_action_edge("action_slide")
+	var pass_pressed := _poll_action_edge("action_pass")
 	var shot_held := Input.is_action_pressed("action_shot") or Input.is_action_pressed("action_primary")
 	if not shot_held:
 		_shot_rearm_required = false
 
-	if (secondary_pressed or Input.is_action_just_pressed("switch_player")) and not has_ball:
+	if (secondary_pressed or switch_just_pressed) and not has_ball:
 		_switch_to_next_teammate()
 		return
 
@@ -865,7 +965,7 @@ func _process_user_controlled(delta: float) -> void:
 		move_and_slide()
 		return
 
-	if Input.is_action_just_pressed("action_ability"):
+	if ability_just_pressed:
 		_activate_special_ability()
 		return
 
@@ -907,6 +1007,8 @@ func _process_user_controlled(delta: float) -> void:
 		if not is_charging_action and not _shot_rearm_required and (primary_just_pressed or shot_just_pressed or shot_held):
 			is_charging_action = true
 			pass_press_time = 0.0
+			_consumed_action_frame["action_shot"] = Engine.get_process_frames()
+			_consumed_action_frame["action_primary"] = Engine.get_process_frames()
 			emit_signal("shot_charge_started", self)
 		elif is_charging_action:
 			if shot_held and pass_press_time < 0.78:
@@ -916,6 +1018,8 @@ func _process_user_controlled(delta: float) -> void:
 				is_charging_action = false
 				pass_press_time = 0.0
 				_shot_rearm_required = shot_held
+				_consumed_action_frame["action_shot"] = Engine.get_process_frames()
+				_consumed_action_frame["action_primary"] = Engine.get_process_frames()
 
 	if is_kicking or stumble_timer > 0.0:
 		velocity = velocity.move_toward(Vector2.ZERO, 900.0 * delta)
@@ -993,13 +1097,13 @@ func execute_shot_at_position(target: Vector2) -> void:
 
 func _find_teammate_near(target: Vector2) -> Player:
 	var nearest: Player = null
-	var nearest_distance := 115.0
-	for node in get_tree().get_nodes_in_group("players"):
+	var nearest_dist_sq := 13225.0 # 115^2
+	for node in _get_match_players():
 		if node is Player and node != self and node.team_id == team_id:
-			var distance: float = node.global_position.distance_to(target)
-			if distance < nearest_distance:
+			var dist_sq: float = node.global_position.distance_squared_to(target)
+			if dist_sq < nearest_dist_sq:
 				nearest = node
-				nearest_distance = distance
+				nearest_dist_sq = dist_sq
 	return nearest
 
 func _perform_pass_to(target: Player) -> void:
@@ -1225,33 +1329,39 @@ func _compute_role_base_position(ball_pos: Vector2, own_goal_pos: Vector2, _enem
 	return Vector2(base_x, base_y)
 
 func _is_closest_ai_on_team_to(pos: Vector2) -> bool:
-	var my_dist = global_position.distance_to(pos)
-	for p in get_tree().get_nodes_in_group("players"):
+	var threshold := global_position.distance_to(pos) - 15.0
+	if threshold <= 0.0:
+		return true
+	var threshold_sq := threshold * threshold
+	for p in _get_match_players():
 		if p != self and p is Player and p.team_id == self.team_id and not p.is_user_controlled:
-			if p.global_position.distance_to(pos) < my_dist - 15.0:
+			if p.global_position.distance_squared_to(pos) < threshold_sq:
 				return false
 	return true
 
 func _count_nearby_opponents(radius: float) -> int:
 	var count := 0
-	for p in get_tree().get_nodes_in_group("players"):
+	var r_sq := radius * radius
+	for p in _get_match_players():
 		if p is Player and p.team_id != self.team_id:
-			if global_position.distance_to(p.global_position) <= radius:
+			if global_position.distance_squared_to(p.global_position) <= r_sq:
 				count += 1
 	return count
 
 func _find_open_forward_teammate(attack_dir_x: float) -> Player:
 	var best: Player = null
 	var best_score: float = -9999.0
-	for p in get_tree().get_nodes_in_group("players"):
+	var players_list := _get_match_players()
+	for p in players_list:
 		if p != self and p is Player and p.team_id == self.team_id:
 			var mate := p as Player
-			var dist := global_position.distance_to(mate.global_position)
-			if dist < 120.0 or dist > 1150.0:
-				continue
 			var advance := (mate.global_position.x - global_position.x) * attack_dir_x
 			if advance < 75.0:
 				continue
+			var dist_sq := global_position.distance_squared_to(mate.global_position)
+			if dist_sq < 14400.0 or dist_sq > 1322500.0: # [120^2, 1150^2]
+				continue
+			var dist := sqrt(dist_sq)
 			var opp_near_mate := mate._count_nearby_opponents(135.0)
 			var score := advance * 0.65 - float(opp_near_mate) * 140.0 - dist * 0.08
 			if score > best_score:
@@ -1310,16 +1420,18 @@ func _process_ai_with_ball(delta: float) -> void:
 
 	# Evasive dribble angle around defenders directly ahead
 	var move_dir := (goal_target - global_position).normalized()
-	for p in get_tree().get_nodes_in_group("players"):
+	for p in _get_match_players():
 		if p is Player and p.team_id != self.team_id:
 			var to_opp: Vector2 = p.global_position - global_position
-			var d := to_opp.length()
-			if d > 5.0 and d < 140.0 and move_dir.dot(to_opp.normalized()) > 0.55:
-				var sidestep := Vector2(0.0, -1.0 if to_opp.y >= 0.0 else 1.0)
-				if absf(global_position.y) > field_half_height - 220.0:
-					sidestep.y = -signf(global_position.y)
-				move_dir = (move_dir + sidestep * 0.55).normalized()
-				break
+			var d_sq := to_opp.length_squared()
+			if d_sq > 25.0 and d_sq < 19600.0: # (5^2, 140^2)
+				var d := sqrt(d_sq)
+				if move_dir.dot(to_opp / d) > 0.55:
+					var sidestep := Vector2(0.0, -1.0 if to_opp.y >= 0.0 else 1.0)
+					if absf(global_position.y) > field_half_height - 220.0:
+						sidestep.y = -signf(global_position.y)
+					move_dir = (move_dir + sidestep * 0.55).normalized()
+					break
 
 	facing_direction = facing_direction.lerp(move_dir, clampf(10.0 * delta, 0.0, 1.0)).normalized()
 	is_moving = true
@@ -1327,41 +1439,38 @@ func _process_ai_with_ball(delta: float) -> void:
 	velocity = velocity.move_toward(facing_direction * speed, 1400.0 * delta)
 
 func _find_best_pass_target() -> Player:
-	var teammates: Array[Player] = []
-	for p in get_tree().get_nodes_in_group("players"):
-		if p != self and p is Player and p.team_id == self.team_id:
-			teammates.append(p)
-
-	if teammates.is_empty():
-		return null
-
 	var best_target: Player = null
 	var best_score: float = -9999.0
+	var players_list := _get_match_players()
+	var has_teammate := false
 
-	for mate in teammates:
-		var to_mate = mate.global_position - global_position
-		var dist = to_mate.length()
-		if dist < 45.0 or dist > 1650.0:
-			continue
+	for p in players_list:
+		if p != self and p is Player and p.team_id == self.team_id:
+			has_teammate = true
+			var mate := p as Player
+			var to_mate := mate.global_position - global_position
+			var dist_sq := to_mate.length_squared()
+			if dist_sq < 2025.0 or dist_sq > 2722500.0: # [45^2, 1650^2]
+				continue
+			var dist := sqrt(dist_sq)
+			var dot := facing_direction.dot(to_mate / dist)
+			if dot >= 0.15:
+				var score := (dot * 120.0) - (dist * 0.04)
+				if score > best_score:
+					best_score = score
+					best_target = mate
 
-		var dir = to_mate.normalized()
-		var dot = facing_direction.dot(dir)
-
-		if dot >= 0.15:
-			var score = (dot * 120.0) - (dist * 0.04)
-			if score > best_score:
-				best_score = score
-				best_target = mate
-
-	if best_target == null:
+	if best_target == null and has_teammate:
 		var attack_dir_x: float = 1.0 if target_goal_x > 0.0 else -1.0
-		for mate in teammates:
-			var dist = global_position.distance_to(mate.global_position)
-			var forward_bonus = (mate.global_position.x - global_position.x) * attack_dir_x * 0.15
-			var score = forward_bonus - dist * 0.1
-			if score > best_score:
-				best_score = score
-				best_target = mate
+		for p in players_list:
+			if p != self and p is Player and p.team_id == self.team_id:
+				var mate := p as Player
+				var dist := global_position.distance_to(mate.global_position)
+				var forward_bonus := (mate.global_position.x - global_position.x) * attack_dir_x * 0.15
+				var score := forward_bonus - dist * 0.1
+				if score > best_score:
+					best_score = score
+					best_target = mate
 
 	return best_target
 
@@ -1373,7 +1482,7 @@ func _set_target_receiver(target: Player) -> void:
 		current_pass_target.is_targeted_for_pass = false
 		if is_instance_valid(current_pass_target.base_indicator):
 			current_pass_target.base_indicator.set_selection_state(current_pass_target.is_user_controlled, false)
-		current_pass_target.queue_redraw()
+		current_pass_target._refresh_overlay_redraw()
 
 	current_pass_target = target
 
@@ -1381,7 +1490,7 @@ func _set_target_receiver(target: Player) -> void:
 		current_pass_target.is_targeted_for_pass = true
 		if is_instance_valid(current_pass_target.base_indicator):
 			current_pass_target.base_indicator.set_selection_state(current_pass_target.is_user_controlled, true)
-		current_pass_target.queue_redraw()
+		current_pass_target._refresh_overlay_redraw()
 
 func _perform_pass() -> void:
 	if not has_ball or not is_instance_valid(current_ball):
@@ -1454,22 +1563,23 @@ func _perform_power_kick() -> void:
 	emit_signal("shot_executed", self, kick_speed, charge_factor)
 
 func _switch_to_next_teammate() -> void:
-	var candidates: Array = []
+	var best_mate: Player = null
+	var best_dist_sq: float = INF
 	var ref_pos := current_ball.global_position if is_instance_valid(current_ball) else global_position
 
-	for p in get_tree().get_nodes_in_group("players"):
+	for p in _get_match_players():
 		if p != self and p is Player and p.team_id == self.team_id:
-			var d = p.global_position.distance_to(ref_pos)
-			candidates.append({"p": p, "dist": d})
+			var d_sq: float = p.global_position.distance_squared_to(ref_pos)
+			if d_sq < best_dist_sq:
+				best_dist_sq = d_sq
+				best_mate = p as Player
 
-	if not candidates.is_empty():
-		candidates.sort_custom(func(a, b): return a.dist < b.dist)
-		var next_player: Player = candidates[0].p
-		next_player.set_user_controlled(true)
+	if is_instance_valid(best_mate):
+		best_mate.set_user_controlled(true)
 		set_user_controlled(false)
 
 func _promote_self_to_user_controlled() -> void:
-	for p in get_tree().get_nodes_in_group("players"):
+	for p in _get_match_players():
 		if p is Player and p.team_id == self.team_id:
 			p.set_user_controlled(p == self)
 

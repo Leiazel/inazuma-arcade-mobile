@@ -55,10 +55,18 @@ var user_player: Node2D = null
 var target_entity: Node2D = null
 var history: Array[int] = [State.IDLE]
 var unscaled_timer: SceneTreeTimer = null
+var _hitstop_generation: int = 0
 
 func _init() -> void:
 	current_state = State.IDLE
 	phase_timer = 0.0
+
+func _ready() -> void:
+	set_process(current_state != State.IDLE)
+
+func _exit_tree() -> void:
+	if Engine.time_scale != 1.0:
+		Engine.time_scale = 1.0
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE:
@@ -74,21 +82,23 @@ static func is_target_in_action_sector(
 	max_range: float = DEFAULT_CONE_RANGE,
 	max_half_angle_deg: float = DEFAULT_CONE_ANGLE_DEG
 ) -> bool:
-	var to_target = target_pos - source_pos
-	var dist = to_target.length()
-	if dist > max_range:
+	var to_target := target_pos - source_pos
+	var dist_sq := to_target.length_squared()
+	if dist_sq > max_range * max_range:
 		return false
-	if dist < 0.0001:
+	if dist_sq < 0.00000001:
 		return true
 
-	var forward = facing_dir.normalized()
-	var dir_to_target = to_target.normalized()
-	var dot_val = forward.dot(dir_to_target)
-	var min_dot = cos(deg_to_rad(max_half_angle_deg))
+	var forward := facing_dir.normalized()
+	var dir_to_target := to_target / sqrt(dist_sq)
+	var dot_val := forward.dot(dir_to_target)
+	var min_dot := cos(deg_to_rad(max_half_angle_deg))
 	return dot_val >= (min_dot - 0.00001)
 
 ## Public execution entrypoint for explicit hit flag (e.g. testing or scripted play)
 func execute(skill_name: String, hit: bool = false) -> void:
+	if current_state == State.HITSTOP:
+		_end_hitstop()
 	current_skill_name = skill_name
 	hit_connected = hit
 	target_entity = null
@@ -150,11 +160,14 @@ func process_step(delta: float) -> void:
 func _process(delta: float) -> void:
 	if current_state != State.IDLE:
 		process_step(delta)
+	else:
+		set_process(false)
 
 func _transition_to(new_state: State) -> void:
-	var old_state = current_state
+	var old_state := current_state
 	current_state = new_state
 	history.append(int(new_state))
+	set_process(new_state != State.IDLE)
 
 	match new_state:
 		State.STARTUP:
@@ -172,6 +185,8 @@ func _transition_to(new_state: State) -> void:
 	emit_signal("state_changed", old_state, new_state)
 
 func _on_hitstop_enter() -> void:
+	_hitstop_generation += 1
+	var expected_gen: int = _hitstop_generation
 	emit_signal("hitstop_entered")
 	if is_instance_valid(target_entity):
 		emit_signal("skill_hit", target_entity)
@@ -181,14 +196,18 @@ func _on_hitstop_enter() -> void:
 	if is_inside_tree() and get_tree() != null:
 		Engine.time_scale = hitstop_time_scale
 		unscaled_timer = get_tree().create_timer(hitstop_duration, true, false, true)
-		unscaled_timer.timeout.connect(_on_unscaled_hitstop_timeout)
+		unscaled_timer.timeout.connect(_on_unscaled_hitstop_timeout.bind(expected_gen))
 
-func _on_unscaled_hitstop_timeout() -> void:
+func _on_unscaled_hitstop_timeout(gen: int = -1) -> void:
+	if gen != -1 and gen != _hitstop_generation:
+		return
 	if current_state == State.HITSTOP:
 		_end_hitstop()
 		_transition_to(State.RECOVERY)
 
 func _end_hitstop() -> void:
+	_hitstop_generation += 1
+	unscaled_timer = null
 	if Engine.time_scale != 1.0:
 		Engine.time_scale = 1.0
 	emit_signal("hitstop_exited")
@@ -199,14 +218,14 @@ func _trigger_camera_shake(trauma_amount: float) -> void:
 		return
 
 	if is_inside_tree():
-		var vp = get_viewport()
+		var vp := get_viewport()
 		if vp != null:
-			var cam = vp.get_camera_2d()
+			var cam := vp.get_camera_2d()
 			if is_instance_valid(cam) and cam.has_method("add_trauma"):
 				cam.call("add_trauma", trauma_amount)
 				return
 
-		var cameras = get_tree().get_nodes_in_group("camera")
+		var cameras := get_tree().get_nodes_in_group("camera")
 		for cam_node in cameras:
 			if is_instance_valid(cam_node) and cam_node.has_method("add_trauma"):
 				cam_node.call("add_trauma", trauma_amount)
@@ -215,7 +234,10 @@ func _trigger_camera_shake(trauma_amount: float) -> void:
 func cancel() -> void:
 	if current_state == State.HITSTOP:
 		_end_hitstop()
+	else:
+		_hitstop_generation += 1
 	current_state = State.IDLE
 	phase_timer = 0.0
 	hit_connected = false
 	target_entity = null
+	set_process(false)

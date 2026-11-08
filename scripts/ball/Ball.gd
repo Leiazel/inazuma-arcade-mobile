@@ -26,6 +26,7 @@ var carrier: CharacterBody2D = null
 var kick_cooldown: float = 0.0
 var last_kicker: CharacterBody2D = null
 var target_receiver: CharacterBody2D = null
+var match_players_ref: Array = []
 
 # Super skill visual trail, aura, and duel metadata
 var super_effect_timer: float = 0.0
@@ -191,40 +192,44 @@ func _check_for_pickup() -> void:
 	if current_state == State.CONTROLADA and is_instance_valid(carrier) and carrier.is_in_group("goalkeepers"):
 		return
 
-	var players = get_tree().get_nodes_in_group("players")
+	var players: Array = match_players_ref if not match_players_ref.is_empty() else get_tree().get_nodes_in_group("players")
 	var best_player: CharacterBody2D = null
-	var best_dist: float = pickup_radius
+	var best_dist_sq: float = pickup_radius * pickup_radius
+	var fast_super_shot: bool = is_super_shot and velocity.length_squared() > 1102500.0 # 1050^2
+	var gk_just_cleared: bool = is_instance_valid(last_kicker) and kick_cooldown > 0.0 and last_kicker.is_in_group("goalkeepers")
 
 	for player in players:
 		if not is_instance_valid(player):
 			continue
 		if player == last_kicker and kick_cooldown > 0.0:
 			continue
-		# Super shots flying above 1050 px/s cannot be casually trapped by field players point-blank unless GK
-		if is_super_shot and velocity.length() > 1050.0 and not player.is_in_group("goalkeepers"):
-			if is_instance_valid(last_kicker) and player.get("team_id") != last_kicker.get("team_id"):
-				continue
-		# If goalkeeper just cleared, opposing team cannot immediately intercept at point blank
-		if is_instance_valid(last_kicker) and last_kicker.is_in_group("goalkeepers") and kick_cooldown > 0.0:
-			if player.get("team_id") != last_kicker.get("team_id"):
-				continue
-		if player.get("pickup_lock_timer") != null and player.pickup_lock_timer > 0.0:
-			continue
-		if player.get("slide_recovery_timer") != null and player.slide_recovery_timer > 0.0:
-			continue
 
 		# Pass interception radius penalties: friendly 19.8 px, opponent 30.6 px
-		var eff_radius = pickup_radius
+		var eff_radius := pickup_radius
 		if is_instance_valid(target_receiver) and player != target_receiver:
 			if player.get("team_id") == target_receiver.get("team_id"):
 				eff_radius = pickup_radius * 0.55
 			else:
 				eff_radius = pickup_radius * 0.85
 
-		var dist = global_position.distance_to(player.global_position)
-		if dist <= eff_radius and dist <= best_dist:
-			best_dist = dist
-			best_player = player
+		var dist_sq: float = global_position.distance_squared_to(player.global_position)
+		if dist_sq > eff_radius * eff_radius or dist_sq > best_dist_sq:
+			continue
+
+		# Super shots flying above 1050 px/s cannot be casually trapped by field players point-blank unless GK
+		if fast_super_shot and not player.is_in_group("goalkeepers"):
+			if is_instance_valid(last_kicker) and player.get("team_id") != last_kicker.get("team_id"):
+				continue
+		# If goalkeeper just cleared, opposing team cannot immediately intercept at point blank
+		if gk_just_cleared and player.get("team_id") != last_kicker.get("team_id"):
+			continue
+		if player.get("pickup_lock_timer") != null and player.pickup_lock_timer > 0.0:
+			continue
+		if player.get("slide_recovery_timer") != null and player.slide_recovery_timer > 0.0:
+			continue
+
+		best_dist_sq = dist_sq
+		best_player = player
 
 	if is_instance_valid(best_player):
 		take_possession(best_player)

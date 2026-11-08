@@ -54,6 +54,11 @@ var vfx_pool: Node = null
 var warmup_manager: Node = null
 var audio_manager: Node = null
 
+var _all_match_actors: Array = []
+var _user_players: Array[Player] = []
+var _opp_players: Array[Player] = []
+var _goalkeepers: Array = []
+
 # 5v5 Matchup presets (preserved for backwards compatibility)
 var matchups: Array[Dictionary] = [
 	{
@@ -161,6 +166,14 @@ func _ready() -> void:
 		_set_match_process_enabled(true)
 		_refresh_hud_full()
 
+func _exit_tree() -> void:
+	if Engine.time_scale != 1.0:
+		Engine.time_scale = 1.0
+	_all_match_actors.clear()
+	_user_players.clear()
+	_opp_players.clear()
+	_goalkeepers.clear()
+
 func _connect_hud_signals() -> void:
 	if hud == null:
 		return
@@ -244,6 +257,11 @@ func toggle_pause() -> void:
 func set_paused_state(paused_flag: bool) -> void:
 	is_paused = paused_flag
 	is_match_active = not is_paused
+	if is_paused and Engine.time_scale != 1.0:
+		if skill_fsm != null and skill_fsm.has_method("cancel"):
+			skill_fsm.call("cancel")
+		else:
+			Engine.time_scale = 1.0
 	_set_match_process_enabled(not is_paused)
 	if audio_manager != null and audio_manager.has_method("play_sfx"):
 		audio_manager.call("play_sfx", "ui_click")
@@ -474,6 +492,9 @@ func _build_tournament_ui_info(prefer_tournament: bool = true) -> Dictionary:
 # ==============================================================================
 
 func _get_active_player() -> Player:
+	for p in _user_players:
+		if is_instance_valid(p) and p.is_user_controlled:
+			return p
 	if players_container == null:
 		return null
 	for node in players_container.get_children():
@@ -485,16 +506,24 @@ func _get_featured_away_player() -> Node:
 	if ball != null and ball.current_state == Ball.State.CONTROLADA and is_instance_valid(ball.carrier):
 		if str(ball.carrier.get("team_id")) == "team_opp":
 			return ball.carrier
+	var best_rival: Node = null
+	var best_dist_sq: float = INF
+	var ref_pos: Vector2 = ball.global_position if ball != null else Vector2.ZERO
+	if not _opp_players.is_empty():
+		for p in _opp_players:
+			if is_instance_valid(p):
+				var d_sq: float = p.global_position.distance_squared_to(ref_pos)
+				if d_sq < best_dist_sq:
+					best_dist_sq = d_sq
+					best_rival = p
+		return best_rival
 	if players_container == null:
 		return null
-	var best_rival: Node = null
-	var best_dist: float = INF
-	var ref_pos: Vector2 = ball.global_position if ball != null else Vector2.ZERO
 	for node in players_container.get_children():
 		if node is Player and node.team_id == "team_opp":
-			var d: float = node.global_position.distance_to(ref_pos)
-			if d < best_dist:
-				best_dist = d
+			var d_sq: float = node.global_position.distance_squared_to(ref_pos)
+			if d_sq < best_dist_sq:
+				best_dist_sq = d_sq
 				best_rival = node
 	return best_rival
 
@@ -519,13 +548,23 @@ func _screen_to_world(screen_position: Vector2) -> Vector2:
 
 func _find_player_at_world(world_position: Vector2) -> Player:
 	var nearest: Player = null
-	var nearest_distance := 92.0
+	var nearest_dist_sq: float = 92.0 * 92.0
+	if not _user_players.is_empty():
+		for p in _user_players:
+			if is_instance_valid(p) and not p.is_ai:
+				var d_sq: float = p.global_position.distance_squared_to(world_position)
+				if d_sq < nearest_dist_sq:
+					nearest = p
+					nearest_dist_sq = d_sq
+		return nearest
+	if players_container == null:
+		return null
 	for node in players_container.get_children():
 		if node is Player and node.team_id == "team_user" and not node.is_ai:
-			var distance: float = node.global_position.distance_to(world_position)
-			if distance < nearest_distance:
+			var d_sq: float = node.global_position.distance_squared_to(world_position)
+			if d_sq < nearest_dist_sq:
 				nearest = node
-				nearest_distance = distance
+				nearest_dist_sq = d_sq
 	return nearest
 
 func _on_field_drag_started(_screen_position: Vector2) -> void:
@@ -556,12 +595,7 @@ func _on_field_drag_ended(_screen_position: Vector2) -> void:
 
 func _load_team_catalog() -> void:
 	team_catalog.clear()
-	var players_data: Dictionary = {}
-	if FileAccess.file_exists("res://data/players.json"):
-		var pf := FileAccess.open("res://data/players.json", FileAccess.READ)
-		var p_parsed = JSON.parse_string(pf.get_as_text()) if pf else null
-		if p_parsed is Dictionary:
-			players_data = p_parsed.get("players", {})
+	var players_data: Dictionary = Player.get_cached_players_db()
 
 	if FileAccess.file_exists("res://data/teams.json"):
 		var file := FileAccess.open("res://data/teams.json", FileAccess.READ)
@@ -634,11 +668,16 @@ func _build_matchup(home_index: int, away_index: int, is_mirror_elite: bool = fa
 	}
 
 func _set_match_process_enabled(enabled: bool) -> void:
-	if players_container != null:
+	var target_mode := Node.PROCESS_MODE_INHERIT if enabled else Node.PROCESS_MODE_DISABLED
+	if not _all_match_actors.is_empty():
+		for node in _all_match_actors:
+			if is_instance_valid(node):
+				node.process_mode = target_mode
+	elif players_container != null:
 		for node in players_container.get_children():
-			node.process_mode = Node.PROCESS_MODE_INHERIT if enabled else Node.PROCESS_MODE_DISABLED
+			node.process_mode = target_mode
 	if ball != null:
-		ball.process_mode = Node.PROCESS_MODE_INHERIT if enabled else Node.PROCESS_MODE_DISABLED
+		ball.process_mode = target_mode
 
 func _set_goals_scoring_enabled(enabled: bool) -> void:
 	if pitch == null:
@@ -651,6 +690,9 @@ func _set_goals_scoring_enabled(enabled: bool) -> void:
 		gr.set("scoring_enabled", enabled)
 
 func _setup_performance_and_skill_systems() -> void:
+	if camera != null and camera.has_method("set_managed_externally"):
+		camera.set_managed_externally(true)
+
 	if skill_fsm == null:
 		skill_fsm = get_node_or_null("SkillStateMachine")
 		if skill_fsm == null:
@@ -678,6 +720,13 @@ func _setup_performance_and_skill_systems() -> void:
 			warmup_manager = WarmUpManagerScript.new()
 			warmup_manager.name = "WarmUpManager"
 			add_child(warmup_manager)
+	if warmup_manager != null:
+		var kit_mat := ShaderMaterial.new()
+		kit_mat.shader = Player.KitColorSwapShader
+		var warm_mats: Array[Material] = [kit_mat]
+		warmup_manager.set("materials_to_warm", warm_mats)
+		if DisplayServer.get_name() != "headless" and warmup_manager.has_method("run_warm_up_routine"):
+			warmup_manager.call_deferred("run_warm_up_routine")
 
 	if audio_manager == null:
 		audio_manager = get_node_or_null("AudioManager")
@@ -713,6 +762,37 @@ func _connect_ball() -> void:
 	if ball.has_signal("pass_completed") and not ball.pass_completed.is_connected(_on_ball_pass_completed):
 		ball.pass_completed.connect(_on_ball_pass_completed)
 
+func _refresh_actor_caches() -> void:
+	_all_match_actors.clear()
+	_user_players.clear()
+	_opp_players.clear()
+	_goalkeepers.clear()
+	if players_container == null:
+		return
+	for node in players_container.get_children():
+		_all_match_actors.append(node)
+		if node is Player:
+			var p := node as Player
+			if p.team_id == "team_user":
+				_user_players.append(p)
+			elif p.team_id == "team_opp":
+				_opp_players.append(p)
+		elif node is CharacterBody2D:
+			_goalkeepers.append(node)
+	for node in _all_match_actors:
+		if node is Player:
+			var p := node as Player
+			p.match_players_ref = _all_match_actors
+			p.match_gks_ref = _goalkeepers
+			if ball != null:
+				p.current_ball = ball
+		elif node is CharacterBody2D:
+			node.set("match_players_ref", _all_match_actors)
+			if ball != null:
+				node.set("ball", ball)
+	if ball != null:
+		ball.match_players_ref = _all_match_actors
+
 func _connect_players_and_goalkeepers() -> void:
 	if players_container == null:
 		return
@@ -738,6 +818,7 @@ func _connect_players_and_goalkeepers() -> void:
 				node.shot_saved.connect(_on_goalkeeper_shot_saved)
 			if node.has_signal("gk_ability_activated") and not node.gk_ability_activated.is_connected(_on_goalkeeper_ability_activated):
 				node.gk_ability_activated.connect(_on_goalkeeper_ability_activated)
+	_refresh_actor_caches()
 
 func _arbitrate_team_colors(m: Dictionary) -> void:
 	var h_prim := Color.from_string(str(m.get("user_color", "#FACC15")), Color(0.98, 0.80, 0.15))
@@ -842,6 +923,21 @@ func _apply_matchup(idx: int) -> void:
 		if is_instance_valid(gk_away_ind):
 			gk_away_ind.set_team_color(resolved_away_color)
 
+	_refresh_actor_caches()
+
+	if hud != null and hud.has_method("preload_match_assets"):
+		var icon_paths: Array[String] = []
+		var portrait_paths: Array[String] = []
+		for actor in _all_match_actors:
+			if is_instance_valid(actor):
+				var ic: String = str(actor.get("icon_path")) if actor.get("icon_path") != null else ""
+				if not ic.is_empty() and not icon_paths.has(ic):
+					icon_paths.append(ic)
+				var pt: String = str(actor.get("portrait_path")) if actor.get("portrait_path") != null else ""
+				if not pt.is_empty() and not portrait_paths.has(pt):
+					portrait_paths.append(pt)
+		hud.call("preload_match_assets", icon_paths, portrait_paths)
+
 	_reset_formation()
 
 func _reset_formation() -> void:
@@ -872,7 +968,8 @@ func _reset_formation() -> void:
 		rp4.set_home_position(Vector2(-500, -100))
 		rp4.global_position = Vector2(170, -70)
 
-	for node in players_container.get_children():
+	var actors_list: Array = _all_match_actors if not _all_match_actors.is_empty() else players_container.get_children()
+	for node in actors_list:
 		if node is CharacterBody2D:
 			(node as CharacterBody2D).velocity = Vector2.ZERO
 			node.set("has_ball", false)
@@ -917,7 +1014,7 @@ func _update_hud_clock() -> void:
 func _update_bottom_hud() -> void:
 	if hud == null or not hud.has_method("update_bottom_hud"):
 		return
-	var all_p: Array = players_container.get_children() if players_container != null else []
+	var all_p: Array = _all_match_actors if not _all_match_actors.is_empty() else (players_container.get_children() if players_container != null else [])
 	hud.call("update_bottom_hud", _get_active_player(), _get_featured_away_player(), all_p, ball)
 
 # ==============================================================================
@@ -1040,22 +1137,23 @@ func _update_camera_tracking(delta: float) -> void:
 	if camera == null:
 		return
 	var carrier: CharacterBody2D = null
-	var active_player: CharacterBody2D = null
-
 	if ball != null and ball.current_state == Ball.State.CONTROLADA:
 		carrier = ball.carrier
 
-	var players: Array = []
-	if is_inside_tree() and get_tree() != null:
-		players = get_tree().get_nodes_in_group("players")
-	elif players_container != null:
-		players = players_container.get_children()
-	for p in players:
-		if p is CharacterBody2D and p.get("is_user_controlled"):
-			active_player = p
-			break
-	if active_player == null and players.size() > 0:
-		active_player = players[0] as CharacterBody2D
+	var active_player: CharacterBody2D = _get_active_player()
+	if active_player == null:
+		if not _user_players.is_empty() and is_instance_valid(_user_players[0]):
+			active_player = _user_players[0]
+		elif not _all_match_actors.is_empty():
+			for p in _all_match_actors:
+				if p is CharacterBody2D:
+					active_player = p as CharacterBody2D
+					break
+		elif players_container != null:
+			for p in players_container.get_children():
+				if p is CharacterBody2D:
+					active_player = p as CharacterBody2D
+					break
 
 	camera.update_camera(delta, ball, carrier, active_player)
 
@@ -1164,7 +1262,11 @@ func _on_ball_pass_completed(receiver: CharacterBody2D) -> void:
 		audio_manager.call("play_sfx", "pass", 1.14)
 	_spawn_vfx_burst(receiver.global_position, Color(0.35, 0.95, 0.62), 0.65, 0.24)
 	var recv_team: String = str(receiver.get("team_id"))
-	if players_container != null:
+	if not _all_match_actors.is_empty():
+		for node in _all_match_actors:
+			if is_instance_valid(node) and str(node.get("team_id")) == recv_team and node.has_method("reduce_ability_cooldown"):
+				node.call("reduce_ability_cooldown", PASS_COOLDOWN_REDUCTION)
+	elif players_container != null:
 		for node in players_container.get_children():
 			if str(node.get("team_id")) == recv_team and node.has_method("reduce_ability_cooldown"):
 				node.call("reduce_ability_cooldown", PASS_COOLDOWN_REDUCTION)

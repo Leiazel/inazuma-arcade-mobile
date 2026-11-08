@@ -13,7 +13,8 @@ const SUITE_PATHS: Array[String] = [
 	"res://tests/test_pooling_warmup.gd",
 	"res://tests/test_physics_invariants.gd",
 	"res://tests/test_hud_hierarchy.gd",
-	"res://tests/test_arcade_improvements.gd"
+	"res://tests/test_arcade_improvements.gd",
+	"res://tests/test_performance_and_audit.gd"
 ]
 
 func _init() -> void:
