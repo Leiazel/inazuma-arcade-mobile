@@ -169,12 +169,10 @@ static func get_or_build_sprite_frames(anim_json_path: String, sheet_path: Strin
 	var sheet_texture: Texture2D = null
 	if ResourceLoader.exists(sheet_path):
 		sheet_texture = load(sheet_path) as Texture2D
-	elif FileAccess.file_exists(sheet_path):
+	if not sheet_texture and FileAccess.file_exists(sheet_path):
 		var img := Image.new()
 		if img.load(ProjectSettings.globalize_path(sheet_path)) == OK:
 			sheet_texture = ImageTexture.create_from_image(img)
-	if not sheet_texture:
-		sheet_texture = load(sheet_path) as Texture2D
 	if not sheet_texture and not fallback_sheet_path.is_empty():
 		sheet_texture = load(fallback_sheet_path) as Texture2D
 	if not sheet_texture:
@@ -349,6 +347,8 @@ func set_home_position(pos: Vector2) -> void:
 	home_position = pos
 	global_position = pos
 	velocity = Vector2.ZERO
+	is_moving = false
+	is_sprinting = false
 	is_sliding = false
 	slide_timer = 0.0
 	slide_recovery_timer = 0.0
@@ -356,10 +356,16 @@ func set_home_position(pos: Vector2) -> void:
 	pass_press_time = 0.0
 	_hissatsu_pending = false
 	hissatsu_windup_timer = 0.0
+	facing_direction = Vector2.RIGHT if target_goal_x >= 0.0 else Vector2.LEFT
+	last_anim_dir = "down"
+	last_flip_h = (target_goal_x < 0.0)
 	if is_instance_valid(anim_sprite):
 		anim_sprite.rotation = 0.0
 		anim_sprite.position = BASE_SPRITE_OFFSET
 		anim_sprite.scale = BASE_SPRITE_SCALE
+		anim_sprite.flip_h = false
+		if anim_sprite.sprite_frames and anim_sprite.sprite_frames.has_animation("idle_down"):
+			anim_sprite.play("idle_down")
 
 func load_player(p_id: String) -> void:
 	player_id = p_id
@@ -1109,8 +1115,14 @@ func _find_teammate_near(target: Vector2) -> Player:
 func _perform_pass_to(target: Player) -> void:
 	if not has_ball or not is_instance_valid(current_ball):
 		return
+	var to_target := target.global_position - global_position
+	if to_target.length_squared() > 0.01:
+		facing_direction = to_target.normalized()
 	is_kicking = true
 	kick_anim_timer = 0.28
+	if anim_sprite and anim_sprite.sprite_frames and anim_sprite.sprite_frames.has_animation("kick"):
+		anim_sprite.flip_h = facing_direction.x < -0.05
+		anim_sprite.play("kick")
 	var pase_stat := float(stats.get("pase", 80))
 	var distance := global_position.distance_to(target.global_position)
 	var pass_speed := clampf(maxf(lerp(580.0, 880.0, pase_stat / 100.0), distance * 1.15), 560.0, 1020.0)
@@ -1587,17 +1599,28 @@ func _update_animation() -> void:
 	if is_kicking or not anim_sprite or not anim_sprite.sprite_frames:
 		return
 
+	var orient_dir := facing_direction
 	if velocity.length() > 16.0 or is_moving:
-		last_anim_dir = _get_direction_name(facing_direction)
-		if facing_direction.x < -0.18:
+		if velocity.length() > 28.0:
+			orient_dir = velocity.normalized()
+		last_anim_dir = _get_direction_name(orient_dir)
+		if orient_dir.x < -0.10:
 			last_flip_h = true
-		elif facing_direction.x > 0.18:
+		elif orient_dir.x > 0.10:
 			last_flip_h = false
+	else:
+		if orient_dir.length_squared() > 0.04:
+			last_anim_dir = _get_direction_name(orient_dir)
+			if orient_dir.x < -0.10:
+				last_flip_h = true
+			elif orient_dir.x > 0.10:
+				last_flip_h = false
 
-	var dir_name := last_anim_dir
+	var dir_name := last_anim_dir if last_anim_dir != "" else "down"
 	var sf := anim_sprite.sprite_frames
 	var target_anim := "idle_down"
 	var use_flip := false
+	var should_freeze_idle := false
 
 	if is_moving and velocity.length() > 12.0:
 		var is_fast := is_sprinting or velocity.length() > 210.0
@@ -1617,38 +1640,71 @@ func _update_animation() -> void:
 				target_anim = (prefix + "side") if sf.has_animation(prefix + "side") else ("run_side" if sf.has_animation("run_side") else "idle_down")
 				use_flip = last_flip_h
 		elif dir_name == "down_side":
-			target_anim = (prefix + "down_side") if sf.has_animation(prefix + "down_side") else ("run_down_side" if sf.has_animation("run_down_side") else "idle_down")
-			use_flip = last_flip_h
+			if last_flip_h and sf.has_animation(prefix + "down_left"):
+				target_anim = prefix + "down_left"
+				use_flip = false
+			else:
+				target_anim = (prefix + "down_side") if sf.has_animation(prefix + "down_side") else ("run_down_side" if sf.has_animation("run_down_side") else "idle_down")
+				use_flip = last_flip_h
 		elif dir_name == "up_side":
 			target_anim = (prefix + "up_side") if sf.has_animation(prefix + "up_side") else ("run_up_side" if sf.has_animation("run_up_side") else "idle_down")
 			use_flip = last_flip_h
 	else:
 		if dir_name == "up" and sf.has_animation("idle_up"):
 			target_anim = "idle_up"
+			use_flip = false
+		elif dir_name == "side":
+			if last_flip_h and sf.has_animation("walk_left"):
+				target_anim = "walk_left"
+				use_flip = false
+				should_freeze_idle = true
+			elif sf.has_animation("walk_side"):
+				target_anim = "walk_side"
+				use_flip = last_flip_h
+				should_freeze_idle = true
+			else:
+				target_anim = "idle_down"
+		elif dir_name == "down_side":
+			if last_flip_h and sf.has_animation("walk_down_left"):
+				target_anim = "walk_down_left"
+				use_flip = false
+				should_freeze_idle = true
+			elif sf.has_animation("walk_down_side"):
+				target_anim = "walk_down_side"
+				use_flip = last_flip_h
+				should_freeze_idle = true
+			else:
+				target_anim = "idle_down"
+		elif dir_name == "up_side" and sf.has_animation("walk_up_side"):
+			target_anim = "walk_up_side"
+			use_flip = last_flip_h
+			should_freeze_idle = true
 		else:
-			target_anim = "idle_down" if sf.has_animation("idle_down") else sf.get_animation_names()[0] if sf.get_animation_names().size() > 0 else ""
+			target_anim = "idle_down" if sf.has_animation("idle_down") else (sf.get_animation_names()[0] if sf.get_animation_names().size() > 0 else "")
 
 	anim_sprite.flip_h = use_flip
-	if target_anim != "" and (anim_sprite.animation != target_anim or not anim_sprite.is_playing()):
-		anim_sprite.play(target_anim)
+	if target_anim != "":
+		if should_freeze_idle:
+			if anim_sprite.animation != target_anim:
+				anim_sprite.animation = target_anim
+			if anim_sprite.is_playing():
+				anim_sprite.stop()
+			anim_sprite.frame = 0
+		elif anim_sprite.animation != target_anim or not anim_sprite.is_playing():
+			anim_sprite.play(target_anim)
 
 func _get_direction_name(dir: Vector2) -> String:
+	if dir.length_squared() < 0.0001:
+		return last_anim_dir if last_anim_dir != "" else "down"
 	var n := dir.normalized()
 	var abs_x := absf(n.x)
 	var y := n.y
 
-	if y < -0.68 and abs_x < 0.48:
-		return "up"
-	elif y > 0.68 and abs_x < 0.48:
-		return "down"
-	elif abs_x >= 0.68 and absf(y) < 0.42:
+	if abs_x < 0.36:
+		return "up" if y < 0.0 else "down"
+	if absf(y) < 0.36:
 		return "side"
-	elif y >= 0.25 and abs_x >= 0.38:
-		return "down_side"
-	elif y <= -0.25 and abs_x >= 0.38:
-		return "up_side"
-
-	return last_anim_dir if last_anim_dir != "" else "down"
+	return "up_side" if y < 0.0 else "down_side"
 
 func on_ball_possessed(b: CharacterBody2D) -> void:
 	has_ball = true

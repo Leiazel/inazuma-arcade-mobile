@@ -210,12 +210,10 @@ func _load_cached_texture(path: String) -> Texture2D:
 	var tex: Texture2D = null
 	if ResourceLoader.exists(path):
 		tex = load(path) as Texture2D
-	elif FileAccess.file_exists(path):
+	if tex == null and FileAccess.file_exists(path):
 		var img := Image.new()
 		if img.load(ProjectSettings.globalize_path(path)) == OK:
 			tex = ImageTexture.create_from_image(img)
-	if tex == null:
-		tex = load(path) as Texture2D
 	if tex != null:
 		_icon_cache[path] = tex
 	return tex
