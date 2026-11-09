@@ -229,6 +229,73 @@ func test_tier_2_input_edge_hitstop_safety_and_9_team_catalog_integrity() -> voi
 	assert_true(min_grid_size.y <= 250.0, "Dense 3x3 team grid minimum height (%.1f px) fits comfortably inside 720p menu" % min_grid_size.y)
 	hud._close_menu_layer()
 
+	# Verify 8-directional animation orientation, flip_h state, and zero static/backwards frames
+	var test_p := m._get_active_player()
+	assert_not_null(test_p, "Active user player exists for directional animation verification")
+	if test_p != null:
+		test_p.is_kicking = false
+		test_p.is_moving = true
+		test_p.is_sprinting = true
+
+		# 1. Pure Right (+X): must play run_side with flip_h == false
+		test_p.facing_direction = Vector2.RIGHT
+		test_p.velocity = Vector2(300.0, 0.0)
+		test_p._update_animation()
+		assert_eq(String(test_p.anim_sprite.animation), "run_side", "Moving right (+X) plays 'run_side'")
+		assert_false(test_p.anim_sprite.flip_h, "Moving right (+X) keeps flip_h == false (facing right)")
+
+		# 2. Slight angle Right (joystick slightly tilted, e.g. y = 0.28): must STILL play run_side facing right
+		test_p.facing_direction = Vector2(0.96, 0.28).normalized()
+		test_p.velocity = test_p.facing_direction * 300.0
+		test_p._update_animation()
+		assert_eq(String(test_p.anim_sprite.animation), "run_side", "Slight joystick angle right plays 'run_side' without deadzone lock")
+		assert_false(test_p.anim_sprite.flip_h, "Slight joystick angle right keeps flip_h == false")
+
+		# 3. Pure Left (-X): must play native run_left with flip_h == false
+		test_p.facing_direction = Vector2.LEFT
+		test_p.velocity = Vector2(-300.0, 0.0)
+		test_p._update_animation()
+		assert_eq(String(test_p.anim_sprite.animation), "run_left", "Moving left (-X) plays native 'run_left'")
+		assert_false(test_p.anim_sprite.flip_h, "Moving left (-X) with native 'run_left' keeps flip_h == false")
+
+		# 4. Diagonal Down-Right (+X, +Y): must play run_down_side with flip_h == false
+		test_p.facing_direction = Vector2(0.75, 0.66).normalized()
+		test_p.velocity = test_p.facing_direction * 300.0
+		test_p._update_animation()
+		assert_eq(String(test_p.anim_sprite.animation), "run_down_side", "Moving down-right (+X, +Y) plays 'run_down_side'")
+		assert_false(test_p.anim_sprite.flip_h, "Moving down-right (+X, +Y) keeps flip_h == false")
+
+		# 5. Diagonal Down-Left (-X, +Y): must play native run_down_left with flip_h == false
+		test_p.facing_direction = Vector2(-0.75, 0.66).normalized()
+		test_p.velocity = test_p.facing_direction * 300.0
+		test_p._update_animation()
+		assert_eq(String(test_p.anim_sprite.animation), "run_down_left", "Moving down-left (-X, +Y) plays native 'run_down_left'")
+		assert_false(test_p.anim_sprite.flip_h, "Moving down-left (-X, +Y) with native 'run_down_left' keeps flip_h == false")
+
+		# 6. Diagonal Up-Right (+X, -Y): must play run_up_side with flip_h == false
+		test_p.facing_direction = Vector2(0.75, -0.66).normalized()
+		test_p.velocity = test_p.facing_direction * 300.0
+		test_p._update_animation()
+		assert_eq(String(test_p.anim_sprite.animation), "run_up_side", "Moving up-right (+X, -Y) plays 'run_up_side'")
+		assert_false(test_p.anim_sprite.flip_h, "Moving up-right (+X, -Y) keeps flip_h == false")
+
+		# 7. Diagonal Up-Left (-X, -Y): must play run_up_side with flip_h == true
+		test_p.facing_direction = Vector2(-0.75, -0.66).normalized()
+		test_p.velocity = test_p.facing_direction * 300.0
+		test_p._update_animation()
+		assert_eq(String(test_p.anim_sprite.animation), "run_up_side", "Moving up-left (-X, -Y) plays 'run_up_side'")
+		assert_true(test_p.anim_sprite.flip_h, "Moving up-left (-X, -Y) sets flip_h == true")
+
+		# 8. Verify run_side frames never include the standing cell (col 2, row 2 -> x=256, y=256) or back-facing cell (col 4, row 2 -> x=512, y=256)
+		var sf_check := test_p.anim_sprite.sprite_frames
+		var bad_side_frame_found := false
+		for fi in range(sf_check.get_frame_count("run_side")):
+			var tex := sf_check.get_frame_texture("run_side", fi) as AtlasTexture
+			if tex != null:
+				if tex.region.position == Vector2(256, 256) or tex.region.position == Vector2(512, 256):
+					bad_side_frame_found = true
+		assert_false(bad_side_frame_found, "run_side excludes static standing frame (#22) and back-number frame (#24)")
+
 	m.free()
 
 # ------------------------------------------------------------------------------
