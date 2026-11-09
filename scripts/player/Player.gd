@@ -1620,7 +1620,6 @@ func _update_animation() -> void:
 	var sf := anim_sprite.sprite_frames
 	var target_anim := "idle_down"
 	var use_flip := false
-	var should_freeze_idle := false
 
 	if is_moving and velocity.length() > 12.0:
 		var is_fast := is_sprinting or velocity.length() > 210.0
@@ -1652,46 +1651,12 @@ func _update_animation() -> void:
 	else:
 		if dir_name == "up" and sf.has_animation("idle_up"):
 			target_anim = "idle_up"
-			use_flip = false
-		elif dir_name == "side":
-			if last_flip_h and sf.has_animation("walk_left"):
-				target_anim = "walk_left"
-				use_flip = false
-				should_freeze_idle = true
-			elif sf.has_animation("walk_side"):
-				target_anim = "walk_side"
-				use_flip = last_flip_h
-				should_freeze_idle = true
-			else:
-				target_anim = "idle_down"
-		elif dir_name == "down_side":
-			if last_flip_h and sf.has_animation("walk_down_left"):
-				target_anim = "walk_down_left"
-				use_flip = false
-				should_freeze_idle = true
-			elif sf.has_animation("walk_down_side"):
-				target_anim = "walk_down_side"
-				use_flip = last_flip_h
-				should_freeze_idle = true
-			else:
-				target_anim = "idle_down"
-		elif dir_name == "up_side" and sf.has_animation("walk_up_side"):
-			target_anim = "walk_up_side"
-			use_flip = last_flip_h
-			should_freeze_idle = true
 		else:
 			target_anim = "idle_down" if sf.has_animation("idle_down") else (sf.get_animation_names()[0] if sf.get_animation_names().size() > 0 else "")
 
 	anim_sprite.flip_h = use_flip
-	if target_anim != "":
-		if should_freeze_idle:
-			if anim_sprite.animation != target_anim:
-				anim_sprite.animation = target_anim
-			if anim_sprite.is_playing():
-				anim_sprite.stop()
-			anim_sprite.frame = 0
-		elif anim_sprite.animation != target_anim or not anim_sprite.is_playing():
-			anim_sprite.play(target_anim)
+	if target_anim != "" and (anim_sprite.animation != target_anim or not anim_sprite.is_playing()):
+		anim_sprite.play(target_anim)
 
 func _get_direction_name(dir: Vector2) -> String:
 	if dir.length_squared() < 0.0001:

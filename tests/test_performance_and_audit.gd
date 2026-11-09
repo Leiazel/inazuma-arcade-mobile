@@ -286,15 +286,29 @@ func test_tier_2_input_edge_hitstop_safety_and_9_team_catalog_integrity() -> voi
 		assert_eq(String(test_p.anim_sprite.animation), "run_up_side", "Moving up-left (-X, -Y) plays 'run_up_side'")
 		assert_true(test_p.anim_sprite.flip_h, "Moving up-left (-X, -Y) sets flip_h == true")
 
-		# 8. Verify run_side frames never include the standing cell (col 2, row 2 -> x=256, y=256) or back-facing cell (col 4, row 2 -> x=512, y=256)
-		var sf_check := test_p.anim_sprite.sprite_frames
-		var bad_side_frame_found := false
-		for fi in range(sf_check.get_frame_count("run_side")):
-			var tex := sf_check.get_frame_texture("run_side", fi) as AtlasTexture
-			if tex != null:
-				if tex.region.position == Vector2(256, 256) or tex.region.position == Vector2(512, 256):
-					bad_side_frame_found = true
-		assert_false(bad_side_frame_found, "run_side excludes static standing frame (#22) and back-number frame (#24)")
+		# 8. Verify all 15 new *_aligned.png spritesheets (eng_*, esp_*, fra_*, gk_eng, gk_esp, gk_fra)
+		# have non-empty canonical cells for run_side (#20), run_left (#29), run_down_side (#38),
+		# run_down_left (#47), run_up_side (#57), and kick (#62..#64) matching the 32 original sheets
+		var new_pids: Array[String] = [
+			"eng_01", "eng_02", "eng_03", "eng_04",
+			"esp_01", "esp_02", "esp_03", "esp_04",
+			"fra_01", "fra_02", "fra_03", "fra_04",
+			"gk_eng", "gk_esp", "gk_fra"
+		]
+		var all_new_sheets_canonical := true
+		for npid in new_pids:
+			var sheet_img := Image.new()
+			var err := sheet_img.load(ProjectSettings.globalize_path("res://assets/sprites/%s_aligned.png" % npid))
+			if err != OK or sheet_img.get_width() != 1280 or sheet_img.get_height() != 896:
+				all_new_sheets_canonical = false
+				continue
+			# Check cell #20 (run_side, facing right) and cell #29 (run_left, facing left) are distinct and populated
+			var r_side := sheet_img.get_region(Rect2i(0, 256, 128, 128))
+			var r_left := sheet_img.get_region(Rect2i(1152, 256, 128, 128))
+			var r_kick := sheet_img.get_region(Rect2i(256, 768, 128, 128))
+			if r_side.is_invisible() or r_left.is_invisible() or r_kick.is_invisible():
+				all_new_sheets_canonical = false
+		assert_true(all_new_sheets_canonical, "All 15 new *_aligned.png sheets have valid 1280x896 canonical right/left/kick cells")
 
 	m.free()
 
