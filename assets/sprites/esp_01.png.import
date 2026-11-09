@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://836f322906d3"
-path="res://.godot/imported/esp_01.png-7ec4db7d19a72ced1508b098abc2996c.ctex"
+uid="uid://836f323a06d3"
+path="res://.godot/imported/esp_01.png-1265365da8751a65d85a80afdf8ceae3.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/esp_01.png"
-dest_files=["res://.godot/imported/esp_01.png-7ec4db7d19a72ced1508b098abc2996c.ctex"]
+dest_files=["res://.godot/imported/esp_01.png-1265365da8751a65d85a80afdf8ceae3.ctex"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://7070558e6f00"
-path="res://.godot/imported/eng_01_portrait.png-5d608533ac6583e115c255b469355a26.ctex"
+path="res://.godot/imported/eng_01_portrait.png-1e464fd9a05bfe2f74d44356fd003623.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/eng_01_portrait.png"
-dest_files=["res://.godot/imported/eng_01_portrait.png-5d608533ac6583e115c255b469355a26.ctex"]
+dest_files=["res://.godot/imported/eng_01_portrait.png-1e464fd9a05bfe2f74d44356fd003623.ctex"]
 
 [params]
 

@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://2ba829d42194"
-path="res://.godot/imported/esp_02_portrait.png-2f34354993009875fdc48a297ff2f61c.ctex"
+uid="uid://2ba83ad422a4"
+path="res://.godot/imported/esp_02_portrait.png-c939aa84c8f67617786b1e9ceab867f1.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/esp_02_portrait.png"
-dest_files=["res://.godot/imported/esp_02_portrait.png-2f34354993009875fdc48a297ff2f61c.ctex"]
+dest_files=["res://.godot/imported/esp_02_portrait.png-c939aa84c8f67617786b1e9ceab867f1.ctex"]
 
 [params]
 
