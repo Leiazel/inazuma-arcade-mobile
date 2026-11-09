@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ad06c34e5557"
-path="res://.godot/imported/fra_01_portrait.png-b2fbdf7ad2fc3dcedeb2e984097546b2.ctex"
+uid="uid://d06c34e5557"
+path="res://.godot/imported/fra_01_portrait.png-c41f97109413d245e55b41ace0a4631b.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/sprites/fra_01_portrait.png"
-dest_files=["res://.godot/imported/fra_01_portrait.png-b2fbdf7ad2fc3dcedeb2e984097546b2.ctex"]
+dest_files=["res://.godot/imported/fra_01_portrait.png-c41f97109413d245e55b41ace0a4631b.ctex"]
 
 [params]
 
