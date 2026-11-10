@@ -1105,7 +1105,7 @@ func _finish_match() -> void:
 				subtitle = "¡Has vencido a las 6 leyendas continentales y conquistado la Copa!"
 			else:
 				tournament_round_index += 1
-				var next_r: Dictionary = tournament_rounds[tournament_round_index]
+				var next_r: Dictionary = tournament_rounds[tournament_round_index] if tournament_round_index < tournament_rounds.size() else {}
 				headline = "¡RONDA %d SUPERADA!" % round_num
 				subtitle = "Próximo desafío: Ronda %d — %s vs %s" % [
 					tournament_round_index + 1,
