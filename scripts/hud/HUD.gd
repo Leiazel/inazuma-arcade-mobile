@@ -723,7 +723,7 @@ func show_match_setup(teams: Array[Dictionary], tournament_info: Dictionary = {}
 	hide_match_result()
 	set_pause_menu_visible(false)
 	if is_instance_valid(menu_layer):
-		menu_layer.free()
+		menu_layer.queue_free()
 		menu_layer = null
 
 	menu_layer = Control.new()
@@ -1318,7 +1318,7 @@ func _on_start_match_pressed() -> void:
 func hide_match_result() -> void:
 	if is_instance_valid(result_layer):
 		result_layer.visible = false
-		result_layer.free()
+		result_layer.queue_free()
 		result_layer = null
 	_sync_touch_menu_block()
 
@@ -1421,25 +1421,25 @@ func show_match_result(info: Dictionary) -> void:
 			primary_btn.pressed.connect(func():
 				hide_match_result()
 				result_action_requested.emit("new_tournament")
-			)
+			, CONNECT_DEFERRED)
 		elif user_won:
 			primary_btn = _make_arcade_button("▶ AVANZAR A SIGUIENTE RONDA", true)
 			primary_btn.pressed.connect(func():
 				hide_match_result()
 				result_action_requested.emit("next_round")
-			)
+			, CONNECT_DEFERRED)
 		else:
 			primary_btn = _make_arcade_button("↻ REINTENTAR RONDA", true)
 			primary_btn.pressed.connect(func():
 				hide_match_result()
 				result_action_requested.emit("retry_round")
-			)
+			, CONNECT_DEFERRED)
 	else:
 		primary_btn = _make_arcade_button("⚡ JUGAR REVANCHA", true)
 		primary_btn.pressed.connect(func():
 			hide_match_result()
 			result_action_requested.emit("rematch")
-		)
+		, CONNECT_DEFERRED)
 
 	primary_btn.custom_minimum_size = Vector2(0, 50)
 	vbox.add_child(primary_btn)
@@ -1449,7 +1449,7 @@ func show_match_result(info: Dictionary) -> void:
 	menu_btn.pressed.connect(func():
 		hide_match_result()
 		result_action_requested.emit("main_menu")
-	)
+	, CONNECT_DEFERRED)
 	vbox.add_child(menu_btn)
 
 	if primary_btn.is_inside_tree():

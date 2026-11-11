@@ -229,6 +229,23 @@ func test_tier_2_input_edge_hitstop_safety_and_9_team_catalog_integrity() -> voi
 	assert_true(min_grid_size.y <= 250.0, "Dense 3x3 team grid minimum height (%.1f px) fits comfortably inside 720p menu" % min_grid_size.y)
 	hud._close_menu_layer()
 
+	# Verify Tournament round progression from Round 1 to Round 2 without crashes or use-after-free
+	m.start_tournament_round(4, 0, true) # Brasil vs Desafiantes
+	assert_true(m.is_tournament_mode, "Tournament mode active")
+	assert_eq(m.tournament_round_index, 0, "Starts at Round 0")
+	m.home_score = 3
+	m.away_score = 0
+	m._finish_match()
+	assert_eq(m.tournament_round_index, 1, "Winning Round 1 advances tournament_round_index to 1")
+	assert_true(is_instance_valid(hud.result_layer), "MatchResultOverlay created on match finish")
+
+	# Simulate pressing 'next_round' button on HUD overlay
+	hud.hide_match_result()
+	m._on_result_action_requested("next_round")
+	assert_true(m.is_match_active, "Round 2 starts active upon next_round request")
+	assert_eq(m.tournament_round_index, 1, "Round 2 tournament_round_index is 1")
+	assert_eq(str(m.matchups[0].get("opp_team_name", "")), "CLÁSICOS LEGENDARIOS", "Round 2 opponent is Clásicos Legendarios (team_veteranos)")
+
 	# Verify 8-directional animation orientation, flip_h state, and zero static/backwards frames
 	var test_p := m._get_active_player()
 	assert_not_null(test_p, "Active user player exists for directional animation verification")
